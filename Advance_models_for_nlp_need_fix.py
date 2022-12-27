@@ -816,5 +816,72 @@ model_3.compile(loss="categorical_crossentropy",
 """
 
 """ Combine two layers
+# 1. Setup token inputs/model
+token_inputs = layers.Input(shape=[], dtype=tf.string, name="token_input")
+token_embeddings = tf_hub_embedding_layer(token_inputs)
+token_output = layers.Dense(128, activation="relu")(token_embeddings)
+token_model = tf.keras.Model(inputs=token_inputs,
+                             outputs=token_output)
+
+# 2. Setup char inputs/model
+char_inputs = layers.Input(shape=(1,), dtype=tf.string, name="char_input")
+char_vectors = char_vectorizer(char_inputs)
+char_embeddings = char_embed(char_vectors)
+char_bi_lstm = layers.Bidirectional(layers.LSTM(25))(char_embeddings) # bi-LSTM shown in Figure 1 of https://arxiv.org/pdf/1612.05251.pdf
+char_model = tf.keras.Model(inputs=char_inputs,
+                            outputs=char_bi_lstm)
+
+# 3. Concatenate token and char inputs (create hybrid token embedding)
+token_char_concat = layers.Concatenate(name="token_char_hybrid")([token_model.output, 
+                                                                  char_model.output])
+
+# 4. Create output layers - addition of dropout discussed in 4.2 of https://arxiv.org/pdf/1612.05251.pdf
+combined_dropout = layers.Dropout(0.5)(token_char_concat)
+combined_dense = layers.Dense(200, activation="relu")(combined_dropout) # slightly different to Figure 1 due to different shapes of token/char embedding layers
+final_dropout = layers.Dropout(0.5)(combined_dense)
+output_layer = layers.Dense(num_classes, activation="softmax")(final_dropout)
+
+# 5. Construct model with char and token inputs
+model_4 = tf.keras.Model(inputs=[token_model.input, char_model.input],
+                         outputs=output_layer,
+                         name="model_4_token_and_char_embeddings")
+
+model_4.summary()
+
+# Plot hybrid token and character model
+from tensorflow.keras.utils import plot_model
+plot_model(model_4)
+
+# Compile token char model
+model_4.compile(loss="categorical_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(), # section 4.2 of https://arxiv.org/pdf/1612.05251.pdf mentions using SGD but we'll stick with Adam
+                metrics=["accuracy"])
+"""
+
+""" Combining token and character data into tf.data
+# Combine chars and tokens into a dataset
+train_char_token_data = tf.data.Dataset.from_tensor_slices((train_sentences, train_chars)) # make data
+train_char_token_labels = tf.data.Dataset.from_tensor_slices(train_labels_one_hot) # make labels
+train_char_token_dataset = tf.data.Dataset.zip((train_char_token_data, train_char_token_labels)) # combine data and labels
+
+# Prefetch and batch train data
+train_char_token_dataset = train_char_token_dataset.batch(32).prefetch(tf.data.AUTOTUNE) 
+
+# Repeat same steps validation data
+val_char_token_data = tf.data.Dataset.from_tensor_slices((val_sentences, val_chars))
+val_char_token_labels = tf.data.Dataset.from_tensor_slices(val_labels_one_hot)
+val_char_token_dataset = tf.data.Dataset.zip((val_char_token_data, val_char_token_labels))
+val_char_token_dataset = val_char_token_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+"""
+""" Fit the combine model
+# Fit the model on tokens and chars
+model_4_history = model_4.fit(train_char_token_dataset, # train on dataset of token and characters
+                              steps_per_epoch=int(0.1 * len(train_char_token_dataset)),
+                              epochs=3,
+                              validation_data=val_char_token_dataset,
+                              validation_steps=int(0.1 * len(val_char_token_dataset)))
+"""
+
+""" Tip and trick positional embedding
 
 """

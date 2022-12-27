@@ -342,6 +342,33 @@ mixed_precision.set_global_policy(policy="mixed_float16") # set global policy to
 
 mixed_precision.global_policy() # should output "mixed_float16" (if your GPU is compatible with mixed precision)
 
+example build model for mix precision you need to add dtype=tf.float32 to use mix precsion
+from tensorflow.keras import layers
+
+# Create base model
+input_shape = (224, 224, 3)
+base_model = tf.keras.applications.EfficientNetB0(include_top=False)
+base_model.trainable = False # freeze base model layers
+
+# Create Functional model 
+inputs = layers.Input(shape=input_shape, name="input_layer")
+# Note: EfficientNetBX models have rescaling built-in but if your model didn't you could have a layer like below
+# x = layers.Rescaling(1./255)(x)
+x = base_model(inputs, training=False) # set base_model to inference mode only
+x = layers.GlobalAveragePooling2D(name="pooling_layer")(x)
+x = layers.Dense(len(class_names))(x) # want one output neuron per class 
+# Separate activation of output layer so we can output float32 activations
+outputs = layers.Activation("softmax", dtype=tf.float32, name="softmax_float32")(x) 
+model = tf.keras.Model(inputs, outputs)
+
+# Compile the model
+model.compile(loss="sparse_categorical_crossentropy", # Use sparse_categorical_crossentropy when labels are *not* one-hot
+              optimizer=tf.keras.optimizers.Adam(),
+              metrics=["accuracy"])
+
+# Check the dtype_policy attributes of layers in our model
+for layer in model.layers:
+    print(layer.name, layer.trainable, layer.dtype, layer.dtype_policy) # Check the dtype policy of layers
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

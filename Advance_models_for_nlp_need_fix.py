@@ -296,6 +296,7 @@ embed_samples = embed([sample_sentence,
 
 print(embed_samples[0][:50])
 
+OR
 
 # We can use this encoding layer in place of our text_vectorizer and embedding layer
 sentence_encoder_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
@@ -325,6 +326,44 @@ model_6_history = model_6.fit(train_sentences,
                               validation_data=(val_sentences, val_labels),
                               callbacks=[create_tensorboard_callback(SAVE_DIR, 
                                                                      "tf_hub_sentence_encoder")])
+
+OR
+
+# Download pretrained TensorFlow Hub USE
+import tensorflow_hub as hub
+tf_hub_embedding_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
+                                        trainable=False,
+                                        name="universal_sentence_encoder")
+
+# Test out the embedding on a random sentence
+random_training_sentence = random.choice(train_sentences)
+print(f"Random training sentence:\n{random_training_sentence}\n")
+use_embedded_sentence = tf_hub_embedding_layer([random_training_sentence])
+print(f"Sentence after embedding:\n{use_embedded_sentence[0][:30]} (truncated output)...\n")
+print(f"Length of sentence embedding:\n{len(use_embedded_sentence[0])}")
+
+
+# Define feature extractor model using TF Hub layer
+inputs = layers.Input(shape=[], dtype=tf.string)
+pretrained_embedding = tf_hub_embedding_layer(inputs) # tokenize text and create embedding
+x = layers.Dense(128, activation="relu")(pretrained_embedding) # add a fully connected layer on top of the embedding
+# Note: you could add more layers here if you wanted to
+outputs = layers.Dense(5, activation="softmax")(x) # create the output layer
+model_2 = tf.keras.Model(inputs=inputs,
+                        outputs=outputs)
+
+# Compile the model
+model_2.compile(loss="categorical_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Fit feature extractor model for 3 epochs
+model_2.fit(train_dataset,
+            steps_per_epoch=int(0.1 * len(train_dataset)),
+            epochs=3,
+            validation_data=valid_dataset,
+            validation_steps=int(0.1 * len(valid_dataset)))
+
 """
 # Create a helper function to compare our baseline results to new model results
 def compare_baseline_to_new_results(baseline_results, new_model_results):

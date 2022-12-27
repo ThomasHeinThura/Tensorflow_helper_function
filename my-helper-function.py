@@ -300,7 +300,19 @@ test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.2 plateua for learning rate reducing (fix file from cnn_advence)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 4.3 save the best perfromance models (fix file from cnn_advence)
+# 4.3 save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
+"""
+# Create TensorBoard callback (already have "create_tensorboard_callback()" from a previous notebook)
+from helper_functions import create_tensorboard_callback
+
+# Create ModelCheckpoint callback to save model's progress
+checkpoint_path = "model_checkpoints/cp.ckpt" # saving weights requires ".ckpt" extension
+model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
+                                                      monitor="val_accuracy", # save the model weights with best validation accuracy
+                                                      save_best_only=True, # only save the best weights
+                                                      save_weights_only=True, # only save model weights (not whole model)
+                                                      verbose=0) # don't print out whether or not model is being saved 
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.4 Creat tensorboard and can show history of models
 def create_tensorboard_callback(dir_name, experiment_name):
@@ -320,6 +332,18 @@ def create_tensorboard_callback(dir_name, experiment_name):
   )
   print(f"Saving TensorBoard log files to: {log_dir}")
   return tensorboard_callback
+
+#4.5 mixed precision training
+# Turn on mixed precision training (that is to train with faster)
+# if you need check tensorflow.keras.mixed_precision
+"""
+from tensorflow.keras import mixed_precision
+mixed_precision.set_global_policy(policy="mixed_float16") # set global policy to mixed precision 
+
+mixed_precision.global_policy() # should output "mixed_float16" (if your GPU is compatible with mixed precision)
+
+"""
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 5. visualize the model and plot prediction and matrix
 # 5.1 model visualization

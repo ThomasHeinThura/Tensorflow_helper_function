@@ -80,6 +80,23 @@ model_0.fit(train_sentences, train_labels)
 
 baseline_score = model_0.score(val_sentences, val_labels)
 print(f"Our baseline model achieves an accuracy of: {baseline_score*100:.2f}%")
+
+OR
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+
+# Create a pipeline
+model_0 = Pipeline([
+  ("tf-idf", TfidfVectorizer()),
+  ("clf", MultinomialNB())
+])
+
+# Fit the pipeline to the training data
+model_0.fit(X=train_sentences, 
+            y=train_labels_encoded);
+
 """
 
 # Function to evaluate: accuracy, precision, recall, f1-score
@@ -538,4 +555,29 @@ train_sentences = train_df["text"].tolist()
 val_sentences = val_df["text"].tolist()
 test_sentences = test_df["text"].tolist()
 len(train_sentences), len(val_sentences), len(test_sentences)
+"""
+"""output or target or labels prepare
+# One hot encode labels
+from sklearn.preprocessing import OneHotEncoder
+one_hot_encoder = OneHotEncoder(sparse=False)
+train_labels_one_hot = one_hot_encoder.fit_transform(train_df["target"].to_numpy().reshape(-1, 1))
+val_labels_one_hot = one_hot_encoder.transform(val_df["target"].to_numpy().reshape(-1, 1))
+test_labels_one_hot = one_hot_encoder.transform(test_df["target"].to_numpy().reshape(-1, 1))
+
+# Check what training labels look like
+train_labels_one_hot
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Extract labels ("target" columns) and encode them into integers 
+from sklearn.preprocessing import LabelEncoder
+label_encoder = LabelEncoder()
+train_labels_encoded = label_encoder.fit_transform(train_df["target"].to_numpy())
+val_labels_encoded = label_encoder.transform(val_df["target"].to_numpy())
+test_labels_encoded = label_encoder.transform(test_df["target"].to_numpy())
+
+# Check what training labels look like
+train_labels_encoded
+"""
+
+""" Prepare data
+
 """

@@ -392,8 +392,10 @@ sample_embed
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3.5 windows and horizon for timeseries
+""" taken form time series py"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 3.6 data for classification and regression
+# 3.6 data for classification and regression (min_max and normalization)
+""" search from scikit learn min_max_scaler"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4. Fit the model and make sure to remember history and callbacks 
 # 4.1 early stopping callbacks (fix file from cnn_advence)

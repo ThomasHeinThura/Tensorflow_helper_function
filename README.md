@@ -6,3 +6,4 @@ Need to do
 1. need to fix methods and commenting 
 2. remove duplicated functions
 3. mini-code for CNN and NLP
+4. Need to clean code and test every function

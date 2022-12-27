@@ -203,10 +203,41 @@ def view_random_image(target_dir, target_class):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
 # 2.3 visualize words and pandas
+"""
+# Download data (same as from Kaggle)
+!wget "https://storage.googleapis.com/ztm_tf_course/nlp_getting_started.zip"
+
+# Unzip data
+unzip_data("nlp_getting_started.zip")
+
+# Turn .csv files into pandas DataFrame's
+import pandas as pd
+train_df = pd.read_csv("train.csv")
+test_df = pd.read_csv("test.csv")
+train_df.head()
+
+# Let's visualize some random training examples
+import random
+random_index = random.randint(0, len(train_df)-5) # create random indexes not higher than the total number of samples
+for row in train_df_shuffled[["text", "target"]][random_index:random_index+5].itertuples():
+  _, text, target = row
+  print(f"Target: {target}", "(real disaster)" if target > 0 else "(not real disaster)")
+  print(f"Text:\n{text}\n")
+  print("---\n")
+"""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3. for preparation data (normalize and add to pipeline)
+# 3.1 Train test split
+"""
+from sklearn.model_selection import train_test_split
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# Use train_test_split to split training data into training and validation sets
+train_sentences, val_sentences, train_labels, val_labels = train_test_split(train_df_shuffled["text"].to_numpy(),
+                                                                            train_df_shuffled["target"].to_numpy(),
+                                                                            test_size=0.1, # dedicate 10% of samples to validation set
+                                                                            random_state=42) # random state for reproducibility
+"""
 # 3.2 datagen for CNN
 # preparation CNN data (first way)
 def reshape_image_from_dir_to_train(train_dir,test_dir):
@@ -295,7 +326,22 @@ test_data = test_data.map(preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
 test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 3.4 token and embedd for NLP 
+# 3.4 tokenization(text vectorization) and embedding for NLP 
+"""
+import tensorflow as tf
+from tensorflow.keras.layers.experimental.preprocessing import TextVectorization
+# Note: in TensorFlow 2.6+, you no longer need "layers.experimental.preprocessing"
+# you can use: "tf.keras.layers.TextVectorization", see https://github.com/tensorflow/tensorflow/releases/tag/v2.6.0 for more
+
+# Use the default TextVectorization variables
+text_vectorizer = TextVectorization(max_tokens=None, # how many words in the vocabulary (all of the different words in your text)
+                                    standardize="lower_and_strip_punctuation", # how to process text
+                                    split="whitespace", # how to split tokens
+                                    ngrams=None, # create groups of n-words?
+                                    output_mode="int", # how to map tokens to numbers
+                                    output_sequence_length=None) # how long should the output sequence of tokens be?
+                                    # pad_to_max_tokens=True) # Not valid if using max_tokens=None
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3.5 windows and horizon for timeseries
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

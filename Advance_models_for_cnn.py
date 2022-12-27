@@ -331,4 +331,17 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  patience=2,
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
+
+# fine tune advence train and fit
+# Start to fine-tune (all layers)
+history_101_food_classes_all_data_fine_tune = loaded_gs_model.fit(train_data,
+                                                        epochs=100, # fine-tune for a maximum of 100 epochs
+                                                        steps_per_epoch=len(train_data),
+                                                        validation_data=test_data,
+                                                        validation_steps=int(0.15 * len(test_data)), # validation during training on 15% of test data
+                                                        callbacks=[create_tensorboard_callback("training_logs", "efficientb0_101_classes_all_data_fine_tuning"), # track the model training logs
+                                                                   model_checkpoint, # save only the best model during training
+                                                                   early_stopping, # stop model after X epochs of no improvements
+                                                                   reduce_lr]) # reduce the learning rate after X epochs of no improvements
+
 """

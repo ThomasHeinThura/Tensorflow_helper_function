@@ -131,6 +131,79 @@ def view_random_image(target_dir, target_class):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3.2 datagen for CNN
+# preparation CNN data (first way)
+def reshape_image_from_dir_to_train(train_dir,test_dir):
+  # Set the seed
+  tf.random.set_seed(42)
+
+  # Preprocess data (get all of the pixel values between 1 and 0, also called scaling/normalization)
+  train_datagen = ImageDataGenerator(rescale=1./255)
+  valid_datagen = ImageDataGenerator(rescale=1./255)
+
+  # Import data from directories and turn it into batches
+  train_data = train_datagen.flow_from_directory(train_dir,
+                                                 batch_size=32, # number of images to process at a time 
+                                                 target_size=(224, 224), # convert all images to be 224 x 224
+                                                 class_mode="binary", # type of problem we're working on
+                                                 seed=42,
+                                                 shuffle=True)
+
+  valid_data = valid_datagen.flow_from_directory(test_dir,
+                                                 batch_size=32,
+                                                 target_size=(224, 224),
+                                                 class_mode="binary",
+                                                 seed=42,
+                                                 shuffle=True)
+
+  return train_data, valid_data
+
+def reshape_augmented_image_from_dir_to_train(train_dir,test_dir):
+  # Set the seed
+  tf.random.set_seed(42)
+
+  # Preprocess data (get all of the pixel values between 1 and 0, also called scaling/normalization)
+
+  train_datagen_augmented = ImageDataGenerator(rescale=1 / 255.,
+                                               rotation_range=20, # rotate the image slightly between 0 and 20 degrees (note: this is an int not a float)
+                                               shear_range=0.2,  # shear the image
+                                               zoom_range=0.2,  # zoom into the image
+                                               width_shift_range=0.2,  # shift the image width ways
+                                               height_shift_range=0.2,  # shift the image height ways
+                                               horizontal_flip=True)  # flip the image on the horizontal axis
+
+  valid_datagen = ImageDataGenerator(rescale=1./255)
+
+  # Import data from directories and turn it into batches
+  train_data_augmented = train_datagen_augmented.flow_from_directory(train_dir,
+                                                 batch_size=32, # number of images to process at a time
+                                                 target_size=(224, 224), # convert all images to be 224 x 224
+                                                 class_mode="binary", # type of problem we're working on
+                                                 seed=42,
+                                                 shuffle= True)
+
+  valid_data = valid_datagen.flow_from_directory(test_dir,
+                                                 batch_size=32,
+                                                 target_size=(224, 224),
+                                                 class_mode="binary",
+                                                 seed=42,
+                                                 shuffle=True)
+  return train_data_augmented, valid_data
+
+# preparation CNN data (second way)
+def preprocess_image_using_keras(train_dir, test_dir):
+    # Create data inputs
+    import tensorflow as tf
+    IMG_SIZE = (224, 224)  # define image size
+    train_data = tf.keras.preprocessing.image_dataset_from_directory(directory=train_dir,
+                                                                                image_size=IMG_SIZE,
+                                                                                label_mode="categorical",
+                                                                                # what type are the labels?
+                                                                                batch_size=32)  # batch_size is 32 by default, this is generally a good number
+    test_data = tf.keras.preprocessing.image_dataset_from_directory(directory=test_dir,
+                                                                               image_size=IMG_SIZE,
+                                                                               label_mode="categorical")
+    return train_data, test_data
+# The second way is better and Data-augmented-layers is needed.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

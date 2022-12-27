@@ -440,6 +440,14 @@ model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
                                                       save_weights_only=True, # only save model weights (not whole model)
                                                       verbose=0) # don't print out whether or not model is being saved 
 """
+import os
+
+# Create a function to implement a ModelCheckpoint callback with a specific filename 
+def create_model_checkpoint(model_name, save_path="model_experiments"):
+  return tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(save_path, model_name), # create filepath to save model
+                                            verbose=0, # only output a limited amount of text
+                                            save_best_only=True) # save only the best model to file
+                                            
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.4 Creat tensorboard and can show history of models
 def create_tensorboard_callback(dir_name, experiment_name):

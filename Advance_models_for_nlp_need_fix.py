@@ -260,6 +260,30 @@ model_5_history = model_5.fit(train_sentences,
                               validation_data=(val_sentences, val_labels),
                               callbacks=[create_tensorboard_callback(SAVE_DIR, 
                                                                      "Conv1D")])
+
+OR
+
+# Create 1D convolutional model to process sequences
+inputs = layers.Input(shape=(1,), dtype=tf.string)
+text_vectors = text_vectorizer(inputs) # vectorize text inputs
+token_embeddings = token_embed(text_vectors) # create embedding
+x = layers.Conv1D(64, kernel_size=5, padding="same", activation="relu")(token_embeddings)
+x = layers.GlobalAveragePooling1D()(x) # condense the output of our feature vector
+outputs = layers.Dense(num_classes, activation="softmax")(x)
+model_1 = tf.keras.Model(inputs, outputs)
+
+# Compile
+model_1.compile(loss="categorical_crossentropy", # if your labels are integer form (not one hot) use sparse_categorical_crossentropy
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Fit the model
+model_1_history = model_1.fit(train_dataset,
+                              steps_per_epoch=int(0.1 * len(train_dataset)), # only fit on 10% of batches for faster training time
+                              epochs=3,
+                              validation_data=valid_dataset,
+                              validation_steps=int(0.1 * len(valid_dataset))) # only validate on 10% of batches
+
 """
 
 """ Pretrained embeddings "Universal sentence encoder from tensorflow hub"

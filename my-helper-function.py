@@ -653,6 +653,6 @@ def calculate_accuracy_results(y_true, y_pred):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - # 
 
 # 5.4 the most common mistakes (ture labels and prediction show) for CNN and NLP
-
+# fix file from cnn.py and commit
 
 # 5.5 

@@ -371,6 +371,12 @@ for test_sample in test_samples:
 # Turn Tweet into string
 daniels_tweet = "Life like an ensemble: take the best choices from others and make your own"
 
+# Source - https://twitter.com/BeirutCityGuide/status/1290696551376007168
+beirut_tweet_1 = "Reports that the smoke in Beirut sky contains nitric acid, which is toxic. Please share and refrain from stepping outside unless urgent. #Lebanon"
+
+# Source - https://twitter.com/BeirutCityGuide/status/1290773498743476224
+beirut_tweet_2 = "#Beirut declared a “devastated city”, two-week state of emergency officially declared. #Lebanon"
+
 """
 def predict_on_sentence(model, sentence):
   """
@@ -382,3 +388,47 @@ def predict_on_sentence(model, sentence):
   pred_label = tf.squeeze(tf.round(pred_prob)).numpy()
   print(f"Pred: {pred_label}", "(real disaster)" if pred_label > 0 else "(not real disaster)", f"Prob: {pred_prob[0][0]}")
   print(f"Text:\n{sentence}")
+
+  
+# Calculate the time of predictions
+import time
+def pred_timer(model, samples):
+  """
+  Times how long a model takes to make predictions on samples.
+  
+  Args:
+  ----
+  model = a trained model
+  sample = a list of samples
+
+  Returns:
+  ----
+  total_time = total elapsed time for model to make predictions on samples
+  time_per_pred = time in seconds per single sample
+  """
+  start_time = time.perf_counter() # get start time
+  model.predict(samples) # make predictions
+  end_time = time.perf_counter() # get finish time
+  total_time = end_time-start_time # calculate how long predictions took to make
+  time_per_pred = total_time/len(val_sentences) # find prediction time per sample
+  return total_time, time_per_pred
+
+""" Time and preformace trade off
+# Calculate TF Hub Sentence Encoder prediction times
+model_6_total_pred_time, model_6_time_per_pred = pred_timer(model_6, val_sentences)
+model_6_total_pred_time, model_6_time_per_pred
+
+# Calculate Naive Bayes prediction times
+baseline_total_pred_time, baseline_time_per_pred = pred_timer(model_0, val_sentences)
+baseline_total_pred_time, baseline_time_per_pred
+
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(10, 7))
+plt.scatter(baseline_time_per_pred, baseline_results["f1"], label="baseline")
+plt.scatter(model_6_time_per_pred, model_6_results["f1"], label="tf_hub_sentence_encoder")
+plt.legend()
+plt.title("F1-score versus time per prediction")
+plt.xlabel("Time per prediction")
+plt.ylabel("F1-Score");
+"""

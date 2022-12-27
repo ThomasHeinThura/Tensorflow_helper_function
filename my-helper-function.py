@@ -71,6 +71,49 @@ def walk_through_dir(dir_path):
   
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1.2 improt from cvs
+"""
+import pandas as pd
+# Read in the insurance dataset
+insurance = pd.read_csv("https://raw.githubusercontent.com/stedy/Machine-Learning-with-R-datasets/master/insurance.csv")
+# Check out the insurance dataset
+insurance.head()
+# Turn all categories into numbers
+insurance_one_hot = pd.get_dummies(insurance)
+insurance_one_hot.head() # view the converted columns
+# Create X & y values
+X = insurance_one_hot.drop("charges", axis=1)
+y = insurance_one_hot["charges"]
+# Create training and test sets
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, 
+                                                    y, 
+                                                    test_size=0.2, 
+                                                    random_state=42) 
+
+
+from sklearn.compose import make_column_transformer
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+
+# Create column transformer (this will help us normalize/preprocess our data)
+ct = make_column_transformer(
+    (MinMaxScaler(), ["age", "bmi", "children"]), # get all values between 0 and 1
+    (OneHotEncoder(handle_unknown="ignore"), ["sex", "smoker", "region"])
+)
+
+# Create X & y
+X = insurance.drop("charges", axis=1)
+y = insurance["charges"]
+
+# Build our train and test sets (use random state to ensure same split as before)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Fit column transformer on the training data only (doing so on test data would result in data leakage)
+ct.fit(X_train)
+
+# Transform training and test data with normalization (MinMaxScalar) and one hot encoding (OneHotEncoder)
+X_train_normal = ct.transform(X_train)
+X_test_normal = ct.transform(X_test)
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1.3 import from online data
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

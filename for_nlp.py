@@ -1,4 +1,6 @@
 # for nlp
+import tensorflow as tf
+
 def make_simple_nlp_model():
     # Set random seed and create embedding layer (new embedding layer for each model)
     tf.random.set_seed(42)

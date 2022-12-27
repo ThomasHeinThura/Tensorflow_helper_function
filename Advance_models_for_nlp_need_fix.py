@@ -244,6 +244,18 @@ model_5_history = model_5.fit(train_sentences,
                               callbacks=[create_tensorboard_callback(SAVE_DIR, 
                                                                      "Conv1D")])
 """
+
+""" Pretrained embeddings "Universal sentence encoder from tensorflow hub"
+# Example of pretrained embedding with universal sentence encoder - https://tfhub.dev/google/universal-sentence-encoder/4
+import tensorflow_hub as hub
+embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4") # load Universal Sentence Encoder
+embed_samples = embed([sample_sentence,
+                      "When you call the universal sentence encoder on a sentence, it turns it into numbers."])
+
+print(embed_samples[0][:50])
+
+
+"""
 # Create a helper function to compare our baseline results to new model results
 def compare_baseline_to_new_results(baseline_results, new_model_results):
   for key, value in baseline_results.items():

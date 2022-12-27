@@ -276,7 +276,18 @@ def preprocess_image_using_keras(train_dir, test_dir):
     return train_data, test_data
 # The second way is better and Data-augmented-layers is needed.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# 3.3 data pipe line for best performace
+"""
+# Map preprocessing function to training data (and paralellize)
+train_data = train_data.map(map_func=preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
+# Shuffle train_data and turn it into batches and prefetch it (load it faster)
+train_data = train_data.shuffle(buffer_size=1000).batch(batch_size=32).prefetch(buffer_size=tf.data.AUTOTUNE)
 
+# Map prepreprocessing function to test data
+test_data = test_data.map(preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
+# Turn test data into batches (don't need to shuffle)
+test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3.4 token and embedd for NLP 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

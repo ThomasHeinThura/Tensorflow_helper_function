@@ -114,6 +114,16 @@ ct.fit(X_train)
 # Transform training and test data with normalization (MinMaxScalar) and one hot encoding (OneHotEncoder)
 X_train_normal = ct.transform(X_train)
 X_test_normal = ct.transform(X_test)
+
+# Plot multiple random images of fashion MNIST
+import random
+plt.figure(figsize=(7, 7))
+for i in range(4):
+  ax = plt.subplot(2, 2, i + 1)
+  rand_index = random.choice(range(len(train_data)))
+  plt.imshow(train_data[rand_index], cmap=plt.cm.binary)
+  plt.title(class_names[train_labels[rand_index]])
+  plt.axis(False)
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1.3 import from online data
@@ -186,7 +196,7 @@ def view_random_image(target_dir, target_class):
     return img
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# 2.3 visualize words and panda
+# 2.3 visualize words and pandas
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3. for preparation data (normalize and add to pipeline)
 
@@ -275,11 +285,11 @@ def preprocess_image_using_keras(train_dir, test_dir):
 # 3.6 data for classification and regression
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4. Fit the model and make sure to remember history and callbacks 
-# 4.1 early stopping callbacks
+# 4.1 early stopping callbacks (fix file from cnn_advence)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 4.2 plateua for learning rate reducing
+# 4.2 plateua for learning rate reducing (fix file from cnn_advence)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 4.3 save the best perfromance models 
+# 4.3 save the best perfromance models (fix file from cnn_advence)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.4 Creat tensorboard and can show history of models
 def create_tensorboard_callback(dir_name, experiment_name):
@@ -462,7 +472,7 @@ def show_preds_image(model, class_names, test_dir):
         plt.title(f"actual: {class_name}, pred: {pred_class}, prob: {pred_prob.max():.2f}", c=title_color)
         plt.axis(False);
 
-def predict_random_image(model, images, true_labels, classes):
+def predict_random_image(model, images, true_labels, classes): # predict for fashion mninst
     """Picks a random image, plots it and labels it with a predicted and truth label.
 
     Args:

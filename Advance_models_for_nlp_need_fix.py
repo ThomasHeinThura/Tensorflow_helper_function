@@ -328,6 +328,7 @@ model_6.save("model_6.h5")
 loaded_model_6 = tf.keras.models.load_model("model_6.h5", 
                                             custom_objects={"KerasLayer": hub.KerasLayer})
 """
+
 """ Most worng example
 # Create dataframe with validation sentences and best performing model predictions
 val_df = pd.DataFrame({"text": val_sentences,
@@ -335,6 +336,24 @@ val_df = pd.DataFrame({"text": val_sentences,
                        "pred": model_6_preds,
                        "pred_prob": tf.squeeze(model_6_pred_probs)})
 val_df.head()
+
+# Find the wrong predictions and sort by prediction probabilities
+most_wrong = val_df[val_df["target"] != val_df["pred"]].sort_values("pred_prob", ascending=False)
+most_wrong[:10]
+
+# Check the false positives (model predicted 1 when should've been 0)
+for row in most_wrong[:10].itertuples(): # loop through the top 10 rows (change the index to view different rows)
+  _, text, target, pred, prob = row
+  print(f"Target: {target}, Pred: {int(pred)}, Prob: {prob}")
+  print(f"Text:\n{text}\n")
+  print("----\n")
+
+# Check the most wrong false negatives (model predicted 0 when should've predict 1)
+for row in most_wrong[-10:].itertuples():
+  _, text, target, pred, prob = row
+  print(f"Target: {target}, Pred: {int(pred)}, Prob: {prob}")
+  print(f"Text:\n{text}\n")
+  print("----\n")
 
 
 """

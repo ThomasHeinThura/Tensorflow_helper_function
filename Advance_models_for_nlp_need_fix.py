@@ -52,3 +52,56 @@ embedding = layers.Embedding(input_dim=max_vocab_length, # set input shape
 
 embedding
 """
+
+"""
+# Get a random sentence from training set
+random_sentence = random.choice(train_sentences)
+print(f"Original text:\n{random_sentence}\
+      \n\nEmbedded version:")
+
+# Embed the random sentence (turn it into numerical representation)
+sample_embed = embedding(text_vectorizer([random_sentence]))
+sample_embed
+"""
+
+""" Naive bayes model to check performance
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+
+# Create tokenization and modelling pipeline
+model_0 = Pipeline([
+                    ("tfidf", TfidfVectorizer()), # convert words to numbers using tfidf
+                    ("clf", MultinomialNB()) # model the text
+])
+
+# Fit the pipeline to the training data
+model_0.fit(train_sentences, train_labels)
+
+baseline_score = model_0.score(val_sentences, val_labels)
+print(f"Our baseline model achieves an accuracy of: {baseline_score*100:.2f}%")
+"""
+
+# Function to evaluate: accuracy, precision, recall, f1-score
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+
+def calculate_results(y_true, y_pred):
+  """
+  Calculates model accuracy, precision, recall and f1 score of a binary classification model.
+
+  Args:
+  -----
+  y_true = true labels in the form of a 1D array
+  y_pred = predicted labels in the form of a 1D array
+
+  Returns a dictionary of accuracy, precision, recall, f1-score.
+  """
+  # Calculate model accuracy
+  model_accuracy = accuracy_score(y_true, y_pred) * 100
+  # Calculate model precision, recall and f1 score using "weighted" average
+  model_precision, model_recall, model_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="weighted")
+  model_results = {"accuracy": model_accuracy,
+                  "precision": model_precision,
+                  "recall": model_recall,
+                  "f1": model_f1}
+  return model_results

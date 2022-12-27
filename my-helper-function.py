@@ -380,6 +380,16 @@ embedding = layers.Embedding(input_dim=max_vocab_length, # set input shape
 
 embedding
 """
+"""
+# Get a random sentence from training set
+random_sentence = random.choice(train_sentences)
+print(f"Original text:\n{random_sentence}\
+      \n\nEmbedded version:")
+
+# Embed the random sentence (turn it into numerical representation)
+sample_embed = embedding(text_vectorizer([random_sentence]))
+sample_embed
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3.5 windows and horizon for timeseries
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

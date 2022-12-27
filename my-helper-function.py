@@ -126,6 +126,15 @@ from tensorflow.keras.datasets import fashion_mnist
 
 # The data has already been sorted into training and test sets for us
 (train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
+
+# Viewing the single example for fashion_mnist
+# Plot a single example
+import matplotlib.pyplot as plt
+plt.imshow(train_data[7]);
+
+# Plot an example image and its label
+plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
+plt.title(class_names[train_labels[17]]);
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 2. for visualize import data #

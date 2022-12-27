@@ -710,6 +710,11 @@ train_dataset = tf.data.Dataset.from_tensor_slices((train_sentences, train_label
 valid_dataset = tf.data.Dataset.from_tensor_slices((val_sentences, val_labels_one_hot))
 test_dataset = tf.data.Dataset.from_tensor_slices((test_sentences, test_labels_one_hot))
 
+# Create char datasets
+train_char_dataset = tf.data.Dataset.from_tensor_slices((train_chars, train_labels_one_hot)).batch(32).prefetch(tf.data.AUTOTUNE)
+val_char_dataset = tf.data.Dataset.from_tensor_slices((val_chars, val_labels_one_hot)).batch(32).prefetch(tf.data.AUTOTUNE)
+
+train_char_dataset
 train_dataset
 
 # Take the TensorSliceDataset's and turn them into prefetched batches

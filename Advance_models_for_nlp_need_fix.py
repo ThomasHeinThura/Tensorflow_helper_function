@@ -993,3 +993,57 @@ history_model_5 = model_5.fit(train_pos_char_token_dataset,
                               validation_data=val_pos_char_token_dataset,
                               validation_steps=int(0.1 * len(val_pos_char_token_dataset)))
 """
+
+"""all model result
+# Combine model results into a DataFrame
+all_model_results = pd.DataFrame({"baseline": baseline_results,
+                                  "custom_token_embed_conv1d": model_1_results,
+                                  "pretrained_token_embed": model_2_results,
+                                  "custom_char_embed_conv1d": model_3_results,
+                                  "hybrid_char_token_embed": model_4_results,
+                                  "tribrid_pos_char_token_embed": model_5_results})
+all_model_results = all_model_results.transpose()
+all_model_results
+"""
+
+""" Test dataset 
+# Create test dataset batch and prefetched
+test_pos_char_token_data = tf.data.Dataset.from_tensor_slices((test_line_numbers_one_hot,
+                                                               test_total_lines_one_hot,
+                                                               test_sentences,
+                                                               test_chars))
+test_pos_char_token_labels = tf.data.Dataset.from_tensor_slices(test_labels_one_hot)
+test_pos_char_token_dataset = tf.data.Dataset.zip((test_pos_char_token_data, test_pos_char_token_labels))
+test_pos_char_token_dataset = test_pos_char_token_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+
+# Check shapes
+test_pos_char_token_dataset
+"""
+
+""" most wrong
+%%time
+# Get list of class names of test predictions
+test_pred_classes = [label_encoder.classes_[pred] for pred in test_preds]
+test_pred_classes
+
+# Create prediction-enriched test dataframe
+test_df["prediction"] = test_pred_classes # create column with test prediction class names
+test_df["pred_prob"] = tf.reduce_max(test_pred_probs, axis=1).numpy() # get the maximum prediction probability
+test_df["correct"] = test_df["prediction"] == test_df["target"] # create binary column for whether the prediction is right or not
+test_df.head(20)
+
+# Find top 100 most wrong samples (note: 100 is an abitrary number, you could go through all of them if you wanted)
+top_100_wrong = test_df[test_df["correct"] == False].sort_values("pred_prob", ascending=False)[:100]
+top_100_wrong
+
+# Investigate top wrong preds
+for row in top_100_wrong[0:10].itertuples(): # adjust indexes to view different samples
+  _, target, text, line_number, total_lines, prediction, pred_prob, _ = row
+  print(f"Target: {target}, Pred: {prediction}, Prob: {pred_prob}, Line number: {line_number}, Total lines: {total_lines}\n")
+  print(f"Text:\n{text}\n")
+  print("-----\n")
+
+
+"""
+
+

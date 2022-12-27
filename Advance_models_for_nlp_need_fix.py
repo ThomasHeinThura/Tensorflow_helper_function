@@ -815,3 +815,6 @@ model_3.compile(loss="categorical_crossentropy",
                 metrics=["accuracy"])
 """
 
+""" Combine two layers
+
+"""

@@ -17,7 +17,7 @@ from datetime import datetime
 # Check version of TensorFlow (exam requires a certain version)
 # See for version: https://www.tensorflow.org/extras/cert/Setting_Up_TF_Developer_Certificate_Exam.pdf 
 print(tf.__version__)
-
+tf.get_logger().setLevel('ERROR')
 # Get data
 (train_images, train_labels), (test_images, test_labels) = datasets.fashion_mnist.load_data()
 

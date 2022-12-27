@@ -172,3 +172,61 @@ model_7.fit(train_dataset,
             callbacks=[tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=200, restore_best_weights=True),
                       tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=100, verbose=1)])
 """
+
+""" Ensemble model (stacking different models together make dision by many models)
+
+"""
+def get_ensemble_models(horizon=HORIZON, 
+                        train_data=train_dataset,
+                        test_data=test_dataset,
+                        num_iter=10, 
+                        num_epochs=100, 
+                        loss_fns=["mae", "mse", "mape"]):
+  """
+  Returns a list of num_iter models each trained on MAE, MSE and MAPE loss.
+
+  For example, if num_iter=10, a list of 30 trained models will be returned:
+  10 * len(["mae", "mse", "mape"]).
+  """
+  # Make empty list for trained ensemble models
+  ensemble_models = []
+
+  # Create num_iter number of models per loss function
+  for i in range(num_iter):
+    # Build and fit a new model with a different loss function
+    for loss_function in loss_fns:
+      print(f"Optimizing model by reducing: {loss_function} for {num_epochs} epochs, model number: {i}")
+
+      # Construct a simple model (similar to model_1)
+      model = tf.keras.Sequential([
+        # Initialize layers with normal (Gaussian) distribution so we can use the models for prediction
+        # interval estimation later: https://www.tensorflow.org/api_docs/python/tf/keras/initializers/HeNormal
+        layers.Dense(128, kernel_initializer="he_normal", activation="relu"), 
+        layers.Dense(128, kernel_initializer="he_normal", activation="relu"),
+        layers.Dense(HORIZON)                                 
+      ])
+
+      # Compile simple model with current loss function
+      model.compile(loss=loss_function,
+                    optimizer=tf.keras.optimizers.Adam(),
+                    metrics=["mae", "mse"])
+      
+      # Fit model
+      model.fit(train_data,
+                epochs=num_epochs,
+                verbose=0,
+                validation_data=test_data,
+                # Add callbacks to prevent training from going/stalling for too long
+                callbacks=[tf.keras.callbacks.EarlyStopping(monitor="val_loss",
+                                                            patience=200,
+                                                            restore_best_weights=True),
+                           tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
+                                                                patience=100,
+                                                                verbose=1)])
+      
+      # Append fitted model to list of ensemble models
+      ensemble_models.append(model)
+
+  return ensemble_models # return list of trained models
+
+

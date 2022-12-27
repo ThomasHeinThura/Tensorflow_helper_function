@@ -247,6 +247,7 @@ model_5_history = model_5.fit(train_sentences,
 
 """ Pretrained embeddings "Universal sentence encoder from tensorflow hub"
 # Example of pretrained embedding with universal sentence encoder - https://tfhub.dev/google/universal-sentence-encoder/4
+# Test example
 import tensorflow_hub as hub
 embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4") # load Universal Sentence Encoder
 embed_samples = embed([sample_sentence,
@@ -255,8 +256,85 @@ embed_samples = embed([sample_sentence,
 print(embed_samples[0][:50])
 
 
+# We can use this encoding layer in place of our text_vectorizer and embedding layer
+sentence_encoder_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
+                                        input_shape=[], # shape of inputs coming to our model 
+                                        dtype=tf.string, # data type of inputs coming to the USE layer
+                                        trainable=False, # keep the pretrained weights (we'll create a feature extractor)
+                                        name="USE") 
+
+# Create model using the Sequential API
+model_6 = tf.keras.Sequential([
+  sentence_encoder_layer, # take in sentences and then encode them into an embedding
+  layers.Dense(64, activation="relu"),
+  layers.Dense(1, activation="sigmoid")
+], name="model_6_USE")
+
+# Compile model
+model_6.compile(loss="binary_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+model_6.summary()
+
+# Train a classifier on top of pretrained embeddings
+model_6_history = model_6.fit(train_sentences,
+                              train_labels,
+                              epochs=5,
+                              validation_data=(val_sentences, val_labels),
+                              callbacks=[create_tensorboard_callback(SAVE_DIR, 
+                                                                     "tf_hub_sentence_encoder")])
 """
 # Create a helper function to compare our baseline results to new model results
 def compare_baseline_to_new_results(baseline_results, new_model_results):
   for key, value in baseline_results.items():
     print(f"Baseline {key}: {value:.2f}, New {key}: {new_model_results[key]:.2f}, Difference: {new_model_results[key]-value:.2f}")
+
+"""
+# One kind of correct way (there are more) to make data subset
+# (split the already split train_sentences/train_labels)
+train_sentences_90_percent, train_sentences_10_percent, train_labels_90_percent, train_labels_10_percent = train_test_split(np.array(train_sentences),
+                                                                                                                            train_labels,
+                                                                                                                            test_size=0.1,
+                                                                                                                            random_state=42)
+
+"""
+""" All model results
+# Combine model results into a DataFrame
+all_model_results = pd.DataFrame({"baseline": baseline_results,
+                                  "simple_dense": model_1_results,
+                                  "lstm": model_2_results,
+                                  "gru": model_3_results,
+                                  "bidirectional": model_4_results,
+                                  "conv1d": model_5_results,
+                                  "tf_hub_sentence_encoder": model_6_results,
+                                  "tf_hub_10_percent_data": model_7_results})
+all_model_results = all_model_results.transpose()
+all_model_results
+
+# Plot and compare all of the model results
+all_model_results.plot(kind="bar", figsize=(10, 7)).legend(bbox_to_anchor=(1.0, 1.0));
+"""
+""" Combine three model to predict one outcome
+# Get mean pred probs for 3 models
+baseline_pred_probs = np.max(model_0.predict_proba(val_sentences), axis=1) # get the prediction probabilities from baseline model
+combined_pred_probs = baseline_pred_probs + tf.squeeze(model_2_pred_probs, axis=1) + tf.squeeze(model_6_pred_probs)
+combined_preds = tf.round(combined_pred_probs/3) # average and round the prediction probabilities to get prediction classes
+combined_preds[:20]
+"""
+""" Save the model 
+model_6.save("model_6.h5")
+# Load model with custom Hub Layer (required with HDF5 format)
+loaded_model_6 = tf.keras.models.load_model("model_6.h5", 
+                                            custom_objects={"KerasLayer": hub.KerasLayer})
+"""
+""" Most worng example
+# Create dataframe with validation sentences and best performing model predictions
+val_df = pd.DataFrame({"text": val_sentences,
+                       "target": val_labels,
+                       "pred": model_6_preds,
+                       "pred_prob": tf.squeeze(model_6_pred_probs)})
+val_df.head()
+
+
+"""

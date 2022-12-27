@@ -46,3 +46,17 @@ plt.ylabel("BTC Price");
 """
 
 
+""" # Create train and test splits the right way for time series data
+split_size = int(0.8 * len(prices)) # 80% train, 20% test
+
+# Create train data splits (everything before the split)
+X_train, y_train = timesteps[:split_size], prices[:split_size]
+
+# Create test data splits (everything after the split)
+X_test, y_test = timesteps[split_size:], prices[split_size:]
+
+len(X_train), len(X_test), len(y_train), len(y_test)
+
+"""
+
+

@@ -78,6 +78,16 @@ def walk_through_dir(dir_path):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 2. for visualize import data #
 # 2.1 visualize plot data
+def view_class_name_from_dir(path):
+    """
+    View an class name from import data folder
+    :param path:
+    :return print class_name:
+    """
+    data_dir = pathlib.Path(path)
+    class_name = np.array(sorted([item.name for item in data_dir.glob('*')]))
+    return print(class_name)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 2.2 visualize picture
 # Plot multiple random images of fashion MNIST
@@ -92,6 +102,27 @@ for i in range(4):
   plt.axis(False)
 
 """
+def view_random_image(target_dir, target_class):
+    """
+    View an random image from import data
+    :param target_dir:
+    :param target_class:
+    :return img:
+    """
+    # Setup target directory (we'll view images from here)
+    target_folder = target_dir+target_class
+
+    # Get a random image path
+    random_image = random.sample(os.listdir(target_folder), 1)
+
+    # Read in the image and plot it using matplotlib
+    img = mpimg.imread(target_folder + "/" + random_image[0])
+    plt.imshow(img)
+    plt.title(target_class)
+    plt.axis("off");
+    print(f"Image shape: {img.shape}") # show the shape of the image
+
+    return img
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
 # 2.3 visualize words and panda
@@ -101,29 +132,7 @@ for i in range(4):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3.2 datagen for CNN
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 3.3 Create a function to import an image and resize it to be able to be used for "prediction" with our model
-def load_and_prep_image(filename, img_shape=224, scale=True):
-  """
-  Reads in an image from filename, turns it into a tensor with normalization and reshapes into
-  (224, 224, 3).
 
-  Parameters
-  ----------
-  filename (str): string filename of target image
-  img_shape (int): size to resize target image to, default 224
-  scale (bool): whether to scale pixel values to range(0, 1), default True
-  """
-  # Read in the image
-  img = tf.io.read_file(filename)
-  # Decode it into a tensor
-  img = tf.image.decode_jpeg(img)
-  # Resize the image
-  img = tf.image.resize(img, [img_shape, img_shape])
-  if scale:
-    # Rescale the image (get all values between 0 and 1)
-    return img/255.
-  else:
-    return img
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3.4 token and embedd for NLP 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
@@ -162,42 +171,6 @@ def create_tensorboard_callback(dir_name, experiment_name):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 5.2 plot prediction 
 # Create a function for plotting a random image along with its prediction
-def plot_random_image(model, images, true_labels, classes):
-    """Picks a random image, plots it and labels it with a predicted and truth label.
-
-    Args:
-      model: a trained model (trained on data similar to what's in images).
-      images: a set of random images (in tensor form).
-      true_labels: array of ground truth labels for images.
-      classes: array of class names for images.
-
-    Returns:
-      A plot of a random image from `images` with a predicted class label from `model`
-      as well as the truth class label from `true_labels`.
-    """
-    # Setup random integer
-    i = random.randint(0, len(images))
-
-    # Create predictions and targets
-    target_image = images[i]
-    pred_probs = model.predict(target_image.reshape(1, 28, 28))  # have to reshape to get into right size for model
-    pred_label = classes[pred_probs.argmax()]
-    true_label = classes[true_labels[i]]
-
-    # Plot the target image
-    plt.imshow(target_image, cmap=plt.cm.binary)
-
-    # Change the color of the titles depending on if the prediction is right or wrong
-    if pred_label == true_label:
-        color = "green"
-    else:
-        color = "red"
-
-    # Add xlabel information (prediction/true label)
-    plt.xlabel("Pred: {} {:2.0f}% (True: {})".format(pred_label,
-                                                     100 * tf.reduce_max(pred_probs),
-                                                     true_label),
-               color=color)  # set the color to green or red
 
 def plot_predictions(train_data, train_labels, test_data, test_labels,predictions):
     """
@@ -280,14 +253,38 @@ def plot_loss_curves(history):
   plt.xlabel('Epochs')
   plt.legend();
 
+# prepare to predict certain image
+def reshape_image_for_predict(filename, img_shape=224, scale=True):
+  """
+  Reads in an image from filename, turns it into a tensor with normalization and reshapes into
+  (224, 224, 3).
+
+  Parameters
+  ----------
+  filename (str): string filename of target image
+  img_shape (int): size to resize target image to, default 224
+  scale (bool): whether to scale pixel values to range(0, 1), default True
+  """
+  # Read in the image
+  img = tf.io.read_file(filename)
+  # Decode it into a tensor
+  img = tf.image.decode_jpeg(img)
+  # Resize the image
+  img = tf.image.resize(img, [img_shape, img_shape])
+  if scale:
+    # Rescale the image (get all values between 0 and 1)
+    return img/255.
+  else:
+    return img
+
 # Make a function to predict on images(CNN model) and plot them (works with multi-class)
-def pred_and_plot(model, filename, class_names):
+def predict_reshaped_image_and_plot(model, filename, class_names):
   """
   Imports an image located at filename, makes a prediction on it with
   a trained model and plots the image with the predicted class as the title.
   """
   # Import the target image and preprocess it
-  img = load_and_prep_image(filename)
+  img = reshape_image_for_predict(filename)
 
   # Make a prediction
   pred = model.predict(tf.expand_dims(img, axis=0))
@@ -302,6 +299,71 @@ def pred_and_plot(model, filename, class_names):
   plt.imshow(img)
   plt.title(f"Prediction: {pred_class}")
   plt.axis(False);
+
+def show_preds_image(model, class_names, test_dir):
+    # Make preds on a series of random images
+    import os
+    import random
+
+    plt.figure(figsize=(17, 10))
+    for i in range(3):
+        # Choose a random image from a random class
+        #class_names = test_data.class_names
+        class_name = random.choice(class_names)
+        filename = random.choice(os.listdir(test_dir + "/" + class_name))
+        filepath = test_dir + class_name + "/" + filename
+
+        # Load the image and make predictions
+        img = reshape_image_for_predict(filepath, scale=False)  # don't scale images for EfficientNet predictions
+        pred_prob = model.predict(tf.expand_dims(img, axis=0))  # model accepts tensors of shape [None, 224, 224, 3]
+        pred_class = class_names[pred_prob.argmax()]  # find the predicted class
+
+        # Plot the image(s)
+        plt.subplot(1, 3, i + 1)
+        plt.imshow(img / 255.)
+        if class_name == pred_class:  # Change the color of text based on whether prediction is right or wrong
+            title_color = "g"
+        else:
+            title_color = "r"
+        plt.title(f"actual: {class_name}, pred: {pred_class}, prob: {pred_prob.max():.2f}", c=title_color)
+        plt.axis(False);
+
+def predict_random_image(model, images, true_labels, classes):
+    """Picks a random image, plots it and labels it with a predicted and truth label.
+
+    Args:
+      model: a trained model (trained on data similar to what's in images).
+      images: a set of random images (in tensor form).
+      true_labels: array of ground truth labels for images.
+      classes: array of class names for images.
+
+    Returns:
+      A plot of a random image from `images` with a predicted class label from `model`
+      as well as the truth class label from `true_labels`.
+    """
+    # Setup random integer
+    i = random.randint(0, len(images))
+
+    # Create predictions and targets
+    target_image = images[i]
+    pred_probs = model.predict(target_image.reshape(1, 28, 28))  # have to reshape to get into right size for model
+    pred_label = classes[pred_probs.argmax()]
+    true_label = classes[true_labels[i]]
+
+    # Plot the target image
+    plt.imshow(target_image, cmap=plt.cm.binary)
+
+    # Change the color of the titles depending on if the prediction is right or wrong
+    if pred_label == true_label:
+        color = "green"
+    else:
+        color = "red"
+
+    # Add xlabel information (prediction/true label)
+    plt.xlabel("Pred: {} {:2.0f}% (True: {})".format(pred_label,
+                                                     100 * tf.reduce_max(pred_probs),
+                                                     true_label),
+               color=color)  # set the color to green or red
 
 # Compare two history
 def compare_historys(original_history, new_history, initial_epochs=5):

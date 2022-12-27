@@ -1,11 +1,10 @@
-from for_cnn import *
-
+# for nlp
 def make_simple_nlp_model():
     # Set random seed and create embedding layer (new embedding layer for each model)
     tf.random.set_seed(42)
     max_vocab_length = 10000 # max number of words to have in our vocabulary
     max_length = 15 # max length our sequences will be (e.g. how many words from a Tweet does our model see?)
-    
+
     import tensorflow as tf
     from tensorflow.keras import layers
     from tensorflow.keras.layers.experimental.preprocessing import TextVectorization

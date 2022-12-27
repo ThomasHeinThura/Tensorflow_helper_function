@@ -141,3 +141,28 @@ print(x.shape)
 outputs = layers.Dense(1, activation="sigmoid")(x)
 model_2 = tf.keras.Model(inputs, outputs, name="model_2_LSTM")
 """
+
+""" GRU model
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_3_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_3")
+
+# Build an RNN using the GRU cell
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_3_embedding(x)
+# x = layers.GRU(64, return_sequences=True) # stacking recurrent cells requires return_sequences=True
+x = layers.GRU(64)(x) 
+# x = layers.Dense(64, activation="relu")(x) # optional dense layer after GRU cell
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_3 = tf.keras.Model(inputs, outputs, name="model_3_GRU")
+"""
+# Create a helper function to compare our baseline results to new model results
+def compare_baseline_to_new_results(baseline_results, new_model_results):
+  for key, value in baseline_results.items():
+    print(f"Baseline {key}: {value:.2f}, New {key}: {new_model_results[key]:.2f}, Difference: {new_model_results[key]-value:.2f}")

@@ -355,5 +355,17 @@ for row in most_wrong[-10:].itertuples():
   print(f"Text:\n{text}\n")
   print("----\n")
 
+"""
 
+""" Making predicitons on the test dataset
+# Making predictions on the test dataset
+test_sentences = test_df["text"].to_list()
+test_samples = random.sample(test_sentences, 10)
+for test_sample in test_samples:
+  pred_prob = tf.squeeze(model_6.predict([test_sample])) # has to be list
+  pred = tf.round(pred_prob)
+  print(f"Pred: {int(pred)}, Prob: {pred_prob}")
+  print(f"Text:\n{test_sample}\n")
+  print("----\n")
+  
 """

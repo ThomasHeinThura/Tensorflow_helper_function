@@ -188,6 +188,13 @@ for layer in base_model.layers[:-10]:
 model_2.compile(loss="categorical_crossentropy",
               optimizer=tf.keras.optimizers.Adam(lr=0.0001), # lr is 10x lower than before for fine-tuning
               metrics=["accuracy"])
+
+# Are any of the layers in our model frozen?
+for layer in loaded_gs_model.layers:
+    layer.trainable = True # set all layers to trainable
+    print(layer.name, layer.trainable, layer.dtype, layer.dtype_policy) # make sure loaded model is using mixed precision dtype_policy ("mixed_float16")
+
+
 """
 """
 # Fine tune for another 5 epochs

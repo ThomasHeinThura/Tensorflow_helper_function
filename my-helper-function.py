@@ -39,6 +39,11 @@ from sklearn.metrics import confusion_matrix
 import zipfile
 import os
 import random
+
+"""
+# Turn off all warnings except for errors
+tf.get_logger().setLevel('ERROR')
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1. for import data #
 # 1.1 import from local data
@@ -297,8 +302,21 @@ test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4. Fit the model and make sure to remember history and callbacks 
 # 4.1 early stopping callbacks (fix file from cnn_advence)
+"""
+# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
+                                                  patience=3) # if val loss decreases for 3 epochs in a row, stop training
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.2 plateua for learning rate reducing (fix file from cnn_advence)
+"""
+# Creating learning rate reduction callback
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
+                                                 factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
+                                                 patience=2,
+                                                 verbose=1, # print out when learning rate goes down 
+                                                 min_lr=1e-7)
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.3 save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
 """
@@ -308,7 +326,7 @@ from helper_functions import create_tensorboard_callback
 # Create ModelCheckpoint callback to save model's progress
 checkpoint_path = "model_checkpoints/cp.ckpt" # saving weights requires ".ckpt" extension
 model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
-                                                      monitor="val_accuracy", # save the model weights with best validation accuracy
+                                                      monitor="val_accuracy",/monitor='val_loss' # save the model weights with best validation accuracy
                                                       save_best_only=True, # only save the best weights
                                                       save_weights_only=True, # only save model weights (not whole model)
                                                       verbose=0) # don't print out whether or not model is being saved 
@@ -369,6 +387,11 @@ model.compile(loss="sparse_categorical_crossentropy", # Use sparse_categorical_c
 # Check the dtype_policy attributes of layers in our model
 for layer in model.layers:
     print(layer.name, layer.trainable, layer.dtype, layer.dtype_policy) # Check the dtype policy of layers
+
+# Check the layers in the base model and see what dtype policy they're using
+for layer in model.layers[1].layers[:20]: # only check the first 20 layers to save output space
+    print(layer.name, layer.trainable, layer.dtype, layer.dtype_policy)
+
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

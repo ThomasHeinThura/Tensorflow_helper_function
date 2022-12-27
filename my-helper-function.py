@@ -492,6 +492,25 @@ for layer in model.layers[1].layers[:20]: # only check the first 20 layers to sa
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 5. visualize the model and plot prediction and matrix
 # 5.1 model visualization
+"""  model.summary and plot_model(plot_model only work in jupyter)
+model.summary()
+
+import tensorflow as tf 
+
+input = tf.keras.Input(shape=(100,), dtype='int32', name='input')
+x = tf.keras.layers.Embedding(
+    output_dim=512, input_dim=10000, input_length=100)(input)
+x = tf.keras.layers.LSTM(32)(x)
+x = tf.keras.layers.Dense(64, activation='relu')(x)
+x = tf.keras.layers.Dense(64, activation='relu')(x)
+x = tf.keras.layers.Dense(64, activation='relu')(x)
+output = tf.keras.layers.Dense(1, activation='sigmoid', name='output')(x)
+model = tf.keras.Model(inputs=[input], outputs=[output])
+model.summary()
+tf.keras.utils.plot_model(model)
+
+
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 5.2 plot prediction 
 # Create a function for plotting a random image along with its prediction

@@ -105,3 +105,39 @@ def calculate_results(y_true, y_pred):
                   "recall": model_recall,
                   "f1": model_f1}
   return model_results
+
+"""
+# Get the vocabulary from the text vectorization layer
+words_in_vocab = text_vectorizer.get_vocabulary()
+len(words_in_vocab), words_in_vocab[:10]
+
+
+# Get the weight matrix of embedding layer 
+# (these are the numerical patterns between the text in the training dataset the model has learned)
+embed_weights = model_1.get_layer("embedding_1").get_weights()[0]
+print(embed_weights.shape) # same size as vocab size and embedding_dim (each word is a embedding_dim size vector)
+
+"""
+""" Basic model
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_2_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_2")
+
+
+# Create LSTM model
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_2_embedding(x)
+print(x.shape)
+# x = layers.LSTM(64, return_sequences=True)(x) # return vector for each word in the Tweet (you can stack RNN cells as long as return_sequences=True)
+x = layers.LSTM(64)(x) # return vector for whole sequence
+print(x.shape)
+# x = layers.Dense(64, activation="relu")(x) # optional dense layer on top of output of LSTM cell
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_2 = tf.keras.Model(inputs, outputs, name="model_2_LSTM")
+"""

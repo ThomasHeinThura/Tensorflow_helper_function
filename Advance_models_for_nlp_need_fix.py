@@ -162,6 +162,88 @@ x = layers.GRU(64)(x)
 outputs = layers.Dense(1, activation="sigmoid")(x)
 model_3 = tf.keras.Model(inputs, outputs, name="model_3_GRU")
 """
+
+""" Bilateral LSTM
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_4_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_4")
+
+# Build a Bidirectional RNN in TensorFlow
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_4_embedding(x)
+# x = layers.Bidirectional(layers.LSTM(64, return_sequences=True))(x) # stacking RNN layers requires return_sequences=True
+x = layers.Bidirectional(layers.LSTM(64))(x) # bidirectional goes both ways so has double the parameters of a regular LSTM layer
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_4 = tf.keras.Model(inputs, outputs, name="model_4_Bidirectional")
+
+# Compile
+model_4.compile(loss="binary_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Get a summary of our bidirectional model
+model_4.summary()
+
+# Fit the model (takes longer because of the bidirectional layers)
+model_4_history = model_4.fit(train_sentences,
+                              train_labels,
+                              epochs=5,
+                              validation_data=(val_sentences, val_labels),
+                              callbacks=[create_tensorboard_callback(SAVE_DIR, "bidirectional_RNN")])
+
+"""
+""" COnv1D layers
+# Test out the embedding, 1D convolutional and max pooling
+embedding_test = embedding(text_vectorizer(["this is a test sentence"])) # turn target sentence into embedding
+conv_1d = layers.Conv1D(filters=32, kernel_size=5, activation="relu") # convolve over target sequence 5 words at a time
+conv_1d_output = conv_1d(embedding_test) # pass embedding through 1D convolutional layer
+max_pool = layers.GlobalMaxPool1D() 
+max_pool_output = max_pool(conv_1d_output) # get the most important features
+embedding_test.shape, conv_1d_output.shape, max_pool_output.shape
+
+
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_5_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_5")
+
+# Create 1-dimensional convolutional layer to model sequences
+from tensorflow.keras import layers
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_5_embedding(x)
+x = layers.Conv1D(filters=32, kernel_size=5, activation="relu")(x)
+x = layers.GlobalMaxPool1D()(x)
+# x = layers.Dense(64, activation="relu")(x) # optional dense layer
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_5 = tf.keras.Model(inputs, outputs, name="model_5_Conv1D")
+
+# Compile Conv1D model
+model_5.compile(loss="binary_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Get a summary of our 1D convolution model
+model_5.summary()
+
+# Fit the model
+model_5_history = model_5.fit(train_sentences,
+                              train_labels,
+                              epochs=5,
+                              validation_data=(val_sentences, val_labels),
+                              callbacks=[create_tensorboard_callback(SAVE_DIR, 
+                                                                     "Conv1D")])
+"""
 # Create a helper function to compare our baseline results to new model results
 def compare_baseline_to_new_results(baseline_results, new_model_results):
   for key, value in baseline_results.items():

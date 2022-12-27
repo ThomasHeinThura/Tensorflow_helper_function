@@ -72,6 +72,7 @@ def walk_through_dir(dir_path):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1.2 improt from cvs
 """
+This is the example procedure to do in cvs data
 import pandas as pd
 # Read in the insurance dataset
 insurance = pd.read_csv("https://raw.githubusercontent.com/stedy/Machine-Learning-with-R-datasets/master/insurance.csv")
@@ -118,6 +119,14 @@ X_test_normal = ct.transform(X_test)
 # 1.3 import from online data
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1.4 import from tf.keras.dataset
+
+"""
+import tensorflow as tf
+from tensorflow.keras.datasets import fashion_mnist
+
+# The data has already been sorted into training and test sets for us
+(train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 2. for visualize import data #
 # 2.1 visualize plot data

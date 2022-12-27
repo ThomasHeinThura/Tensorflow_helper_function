@@ -882,6 +882,114 @@ model_4_history = model_4.fit(train_char_token_dataset, # train on dataset of to
                               validation_steps=int(0.1 * len(val_char_token_dataset)))
 """
 
-""" Tip and trick positional embedding
+""" Tip and trick positional embedding i.e adding line  numbers
+# How many different line numbers are there?
+train_df["line_number"].value_counts()
 
+# Check the distribution of "line_number" column
+train_df.line_number.plot.hist()
+
+# Use TensorFlow to create one-hot-encoded tensors of our "line_number" column 
+train_line_numbers_one_hot = tf.one_hot(train_df["line_number"].to_numpy(), depth=15)
+val_line_numbers_one_hot = tf.one_hot(val_df["line_number"].to_numpy(), depth=15)
+test_line_numbers_one_hot = tf.one_hot(test_df["line_number"].to_numpy(), depth=15)
+
+# How many different numbers of lines are there?
+train_df["total_lines"].value_counts()
+
+# Check the distribution of total lines
+train_df.total_lines.plot.hist();
+
+# Check the coverage of a "total_lines" value of 20
+np.percentile(train_df.total_lines, 98) # a value of 20 covers 98% of samples
+# Use TensorFlow to create one-hot-encoded tensors of our "total_lines" column 
+train_total_lines_one_hot = tf.one_hot(train_df["total_lines"].to_numpy(), depth=20)
+val_total_lines_one_hot = tf.one_hot(val_df["total_lines"].to_numpy(), depth=20)
+test_total_lines_one_hot = tf.one_hot(test_df["total_lines"].to_numpy(), depth=20)
+
+# Check shape and samples of total lines one-hot tensor
+train_total_lines_one_hot.shape, train_total_lines_one_hot[:10]
+"""
+
+""" Triple input embedding model
+# 1. Token inputs
+token_inputs = layers.Input(shape=[], dtype="string", name="token_inputs")
+token_embeddings = tf_hub_embedding_layer(token_inputs)
+token_outputs = layers.Dense(128, activation="relu")(token_embeddings)
+token_model = tf.keras.Model(inputs=token_inputs,
+                             outputs=token_outputs)
+
+# 2. Char inputs
+char_inputs = layers.Input(shape=(1,), dtype="string", name="char_inputs")
+char_vectors = char_vectorizer(char_inputs)
+char_embeddings = char_embed(char_vectors)
+char_bi_lstm = layers.Bidirectional(layers.LSTM(32))(char_embeddings)
+char_model = tf.keras.Model(inputs=char_inputs,
+                            outputs=char_bi_lstm)
+
+# 3. Line numbers inputs
+line_number_inputs = layers.Input(shape=(15,), dtype=tf.int32, name="line_number_input")
+x = layers.Dense(32, activation="relu")(line_number_inputs)
+line_number_model = tf.keras.Model(inputs=line_number_inputs,
+                                   outputs=x)
+
+# 4. Total lines inputs
+total_lines_inputs = layers.Input(shape=(20,), dtype=tf.int32, name="total_lines_input")
+y = layers.Dense(32, activation="relu")(total_lines_inputs)
+total_line_model = tf.keras.Model(inputs=total_lines_inputs,
+                                  outputs=y)
+
+# 5. Combine token and char embeddings into a hybrid embedding
+combined_embeddings = layers.Concatenate(name="token_char_hybrid_embedding")([token_model.output, 
+                                                                              char_model.output])
+z = layers.Dense(256, activation="relu")(combined_embeddings)
+z = layers.Dropout(0.5)(z)
+
+# 6. Combine positional embeddings with combined token and char embeddings into a tribrid embedding
+z = layers.Concatenate(name="token_char_positional_embedding")([line_number_model.output,
+                                                                total_line_model.output,
+                                                                z])
+
+# 7. Create output layer
+output_layer = layers.Dense(5, activation="softmax", name="output_layer")(z)
+
+# 8. Put together model
+model_5 = tf.keras.Model(inputs=[line_number_model.input,
+                                 total_line_model.input,
+                                 token_model.input, 
+                                 char_model.input],
+                         outputs=output_layer)
+
+# Compile token, char, positional embedding model
+model_5.compile(loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=0.2), # add label smoothing (examples which are really confident get smoothed a little)
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Create training and validation datasets (all four kinds of inputs)
+train_pos_char_token_data = tf.data.Dataset.from_tensor_slices((train_line_numbers_one_hot, # line numbers
+                                                                train_total_lines_one_hot, # total lines
+                                                                train_sentences, # train tokens
+                                                                train_chars)) # train chars
+train_pos_char_token_labels = tf.data.Dataset.from_tensor_slices(train_labels_one_hot) # train labels
+train_pos_char_token_dataset = tf.data.Dataset.zip((train_pos_char_token_data, train_pos_char_token_labels)) # combine data and labels
+train_pos_char_token_dataset = train_pos_char_token_dataset.batch(32).prefetch(tf.data.AUTOTUNE) # turn into batches and prefetch appropriately
+
+# Validation dataset
+val_pos_char_token_data = tf.data.Dataset.from_tensor_slices((val_line_numbers_one_hot,
+                                                              val_total_lines_one_hot,
+                                                              val_sentences,
+                                                              val_chars))
+val_pos_char_token_labels = tf.data.Dataset.from_tensor_slices(val_labels_one_hot)
+val_pos_char_token_dataset = tf.data.Dataset.zip((val_pos_char_token_data, val_pos_char_token_labels))
+val_pos_char_token_dataset = val_pos_char_token_dataset.batch(32).prefetch(tf.data.AUTOTUNE) # turn into batches and prefetch appropriately
+
+# Check input shapes
+train_pos_char_token_dataset, val_pos_char_token_dataset
+
+# Fit the token, char and positional embedding model
+history_model_5 = model_5.fit(train_pos_char_token_dataset,
+                              steps_per_epoch=int(0.1 * len(train_pos_char_token_dataset)),
+                              epochs=3,
+                              validation_data=val_pos_char_token_dataset,
+                              validation_steps=int(0.1 * len(val_pos_char_token_dataset)))
 """

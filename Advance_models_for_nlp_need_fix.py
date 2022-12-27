@@ -720,3 +720,93 @@ test_dataset = test_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
 train_dataset
 
 """
+""" Make character level embedding
+first make split 
+# Make function to split sentences into characters
+def split_chars(text):
+  return " ".join(list(text))
+
+# Test splitting non-character-level sequence into characters
+split_chars(random_training_sentence)
+
+# Split sequence-level data splits into character-level data splits
+train_chars = [split_chars(sentence) for sentence in train_sentences]
+val_chars = [split_chars(sentence) for sentence in val_sentences]
+test_chars = [split_chars(sentence) for sentence in test_sentences]
+print(train_chars[0])
+
+# What's the average character length?
+char_lens = [len(sentence) for sentence in train_sentences]
+mean_char_len = np.mean(char_lens)
+mean_char_len
+
+# Check the distribution of our sequences at character-level
+import matplotlib.pyplot as plt
+plt.hist(char_lens, bins=7);
+
+# Find what character length covers 95% of sequences
+output_seq_char_len = int(np.percentile(char_lens, 95))
+output_seq_char_len
+
+# Get all keyboard characters for char-level embedding
+import string
+alphabet = string.ascii_lowercase + string.digits + string.punctuation
+alphabet
+
+# Create char-level token vectorizer instance
+NUM_CHAR_TOKENS = len(alphabet) + 2 # num characters in alphabet + space + OOV token
+char_vectorizer = TextVectorization(max_tokens=NUM_CHAR_TOKENS,  
+                                    output_sequence_length=output_seq_char_len,
+                                    standardize="lower_and_strip_punctuation",
+                                    name="char_vectorizer")
+
+# Adapt character vectorizer to training characters
+char_vectorizer.adapt(train_chars)
+
+# Check character vocabulary characteristics
+char_vocab = char_vectorizer.get_vocabulary()
+print(f"Number of different characters in character vocab: {len(char_vocab)}")
+print(f"5 most common characters: {char_vocab[:5]}")
+print(f"5 least common characters: {char_vocab[-5:]}")
+
+# Test out character vectorizer
+random_train_chars = random.choice(train_chars)
+print(f"Charified text:\n{random_train_chars}")
+print(f"\nLength of chars: {len(random_train_chars.split())}")
+vectorized_chars = char_vectorizer([random_train_chars])
+print(f"\nVectorized chars:\n{vectorized_chars}")
+print(f"\nLength of vectorized chars: {len(vectorized_chars[0])}")
+
+"""
+
+"""Character level embedding layers
+# Create char embedding layer
+char_embed = layers.Embedding(input_dim=NUM_CHAR_TOKENS, # number of different characters
+                              output_dim=25, # embedding dimension of each character (same as Figure 1 in https://arxiv.org/pdf/1612.05251.pdf)
+                              mask_zero=False, # don't use masks (this messes up model_5 if set to True)
+                              name="char_embed")
+
+# Test out character embedding layer
+print(f"Charified text (before vectorization and embedding):\n{random_train_chars}\n")
+char_embed_example = char_embed(char_vectorizer([random_train_chars]))
+print(f"Embedded chars (after vectorization and embedding):\n{char_embed_example}\n")
+print(f"Character embedding shape: {char_embed_example.shape}")
+"""
+""" Character lvl Conv1D layers
+# Make Conv1D on chars only
+inputs = layers.Input(shape=(1,), dtype="string")
+char_vectors = char_vectorizer(inputs)
+char_embeddings = char_embed(char_vectors)
+x = layers.Conv1D(64, kernel_size=5, padding="same", activation="relu")(char_embeddings)
+x = layers.GlobalMaxPool1D()(x)
+outputs = layers.Dense(num_classes, activation="softmax")(x)
+model_3 = tf.keras.Model(inputs=inputs,
+                         outputs=outputs,
+                         name="model_3_conv1D_char_embedding")
+
+# Compile model
+model_3.compile(loss="categorical_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+"""
+

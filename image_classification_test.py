@@ -60,4 +60,4 @@ print("Evaluating model...")
 model.evaluate(test_images, test_labels)
 
 # Save model to current working directory
-model.save("test_image_model.h5")
+#model.save("test_image_model.h5")

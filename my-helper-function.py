@@ -327,7 +327,7 @@ def plot_loss_curves(history):
   plt.legend();
 
 # prepare to predict certain image
-def reshape_image_for_predict(filename, img_shape=224, scale=True):
+def reshape_image_to_predict(filename, img_shape=224, scale=True):
   """
   Reads in an image from filename, turns it into a tensor with normalization and reshapes into
   (224, 224, 3).
@@ -439,7 +439,7 @@ def predict_random_image(model, images, true_labels, classes):
                color=color)  # set the color to green or red
 
 # Compare two history
-def compare_historys(original_history, new_history, initial_epochs=5):
+def compare_two_historys(original_history, new_history, initial_epochs=5):
     """
     Compares two TensorFlow model History objects.
     
@@ -582,4 +582,6 @@ def calculate_accuracy_results(y_true, y_pred):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - # 
 
 # 5.4 the most common mistakes (ture labels and prediction show) for CNN and NLP
+
+
 # 5.5 

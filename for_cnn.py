@@ -277,7 +277,7 @@ def show_preds_image(model, class_names, test_dir):
         plt.title(f"actual: {class_name}, pred: {pred_class}, prob: {pred_prob.max():.2f}", c=title_color)
         plt.axis(False);
 
-def show_most_wrong_data():
+def show_most_wrong_data(): #Need to fix the function and add to my-function:
     """
     We need to make pandas to search most wrong data and show imgs
 

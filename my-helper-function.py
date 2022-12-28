@@ -16,7 +16,8 @@
 # 3.2 datagen for CNN
 # 3.3 token and embedd for NLP 
 # 3.4 windows and horizon for timeseries
-# 3.5 data for classification and regression
+# 3.5 data for classification and regression 
+#
 # 4. Fit the model and make sure to remember history and callbacks 
 # 4.1 early stopping callbacks
 # 4.2 plateua for learning rate reducing
@@ -121,15 +122,6 @@ def show_methods_for_import_cvs():
   X_train_normal = ct.transform(X_train)
   X_test_normal = ct.transform(X_test)
 
-  # Plot multiple random images of fashion MNIST
-  import random
-  plt.figure(figsize=(7, 7))
-  for i in range(4):
-    ax = plt.subplot(2, 2, i + 1)
-    rand_index = random.choice(range(len(train_data)))
-    plt.imshow(train_data[rand_index], cmap=plt.cm.binary)
-    plt.title(class_names[train_labels[rand_index]])
-    plt.axis(False)
   """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1.3 import from online data
@@ -729,6 +721,17 @@ def predict_random_image(model, images, true_labels, classes): # predict for fas
                                                      100 * tf.reduce_max(pred_probs),
                                                      true_label),
                color=color)  # set the color to green or red
+
+"""  # Plot multiple random images of fashion MNIST
+  import random
+  plt.figure(figsize=(7, 7))
+  for i in range(4):
+    ax = plt.subplot(2, 2, i + 1)
+    rand_index = random.choice(range(len(train_data)))
+    plt.imshow(train_data[rand_index], cmap=plt.cm.binary)
+    plt.title(class_names[train_labels[rand_index]])
+    plt.axis(False)
+"""
 
 # Compare two history
 def compare_two_historys(original_history, new_history, initial_epochs=5):

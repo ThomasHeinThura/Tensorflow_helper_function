@@ -311,7 +311,7 @@ def create_tensorboard_callback(dir_name, experiment_name):
 #4.5 mixed precision training
 # Turn on mixed precision training (that is to train with faster)
 # if you need check tensorflow.keras.mixed_precision
-"""
+""" mixed precison i.e train model with nvidia adv cuda
 from tensorflow.keras import mixed_precision
 mixed_precision.set_global_policy(policy="mixed_float16") # set global policy to mixed precision 
 
@@ -905,6 +905,21 @@ history_10_percent_data_aug = model_2.fit(train_data_10_percent,
                                           validation_steps=int(0.25 * len(test_data)), # do less steps per validation (quicker)
                                           callbacks=[create_tensorboard_callback("transfer_learning", "10_percent_data_aug"), 
                                                      checkpoint_callback])
+
+OR 
+
+# fine tune advence train and fit
+# Start to fine-tune (all layers)
+history_101_food_classes_all_data_fine_tune = loaded_gs_model.fit(train_data,
+                                                        epochs=100, # fine-tune for a maximum of 100 epochs
+                                                        steps_per_epoch=len(train_data),
+                                                        validation_data=test_data,
+                                                        validation_steps=int(0.15 * len(test_data)), # validation during training on 15% of test data
+                                                        callbacks=[create_tensorboard_callback("training_logs", "efficientb0_101_classes_all_data_fine_tuning"), # track the model training logs
+                                                                   model_checkpoint, # save only the best model during training
+                                                                   early_stopping, # stop model after X epochs of no improvements
+                                                                   reduce_lr]) # reduce the learning rate after X epochs of no improvements
+
 """
 
 """ Evaluate the whole model prediction with f1 score of each class

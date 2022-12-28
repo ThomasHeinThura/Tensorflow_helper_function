@@ -76,22 +76,36 @@ def view_class_name_from_dir(path):
 
 # 1.2 import from tf.keras.dataset # Procedures
 def show_methods_for_import_dataset():
-  """
-  import tensorflow as tf
-  from tensorflow.keras.datasets import fashion_mnist
+    """
+    import tensorflow as tf
+    from tensorflow.keras.datasets import fashion_mnist
 
-  # The data has already been sorted into training and test sets for us
-  (train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
+    # The data has already been sorted into training and test sets for us
+    (train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
 
-  # Viewing the single example for fashion_mnist
-  # Plot a single example
-  import matplotlib.pyplot as plt
-  plt.imshow(train_data[7]);
+    # Viewing the single example for fashion_mnist
+    # Plot a single example
+    import matplotlib.pyplot as plt
+    plt.imshow(train_data[7]);
 
-  # Plot an example image and its label
-  plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
-  plt.title(class_names[train_labels[17]]);
-  """
+    # Plot an example image and its label
+    plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
+    plt.title(class_names[train_labels[17]]);
+    """
+    """ Import from dataset
+    # Get TensorFlow Datasets
+    import tensorflow_datasets as tfds
+    # List available datasets
+    datasets_list = tfds.list_builders() # get all available datasets in TFDS
+    print("food101" in datasets_list) # is the dataset we're after available?
+
+    # Load in the data (takes about 5-6 minutes in Google Colab)
+    (train_data, test_data), ds_info = tfds.load(name="food101", # target dataset to get from TFDS
+                                                 split=["train", "validation"], # what splits of data should we get? note: not all datasets have train, valid, test
+                                                 shuffle_files=True, # shuffle files on download?
+                                                 as_supervised=True, # download data in tuple format (sample, label), e.g. (image, label)
+                                                 with_info=True) # include dataset metadata? if so, tfds.load() returns tuple (data, ds_info)
+    """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
@@ -228,7 +242,7 @@ def preprocess_image_using_keras(train_dir, test_dir):
 # The second way is better and Data-augmented-layers is needed.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
 # 3.3 data pipe line for best performace
-"""
+""" Preprocess data pipeline
 # Map preprocessing function to training data (and paralellize)
 train_data = train_data.map(map_func=preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
 # Shuffle train_data and turn it into batches and prefetch it (load it faster)
@@ -242,15 +256,13 @@ test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
 
 # 4. Fit the model and make sure to remember history and callbacks 
 # 4.1 early stopping callbacks (fix file from cnn_advence)
-"""
-# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
+"""# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
                                                   patience=3) # if val loss decreases for 3 epochs in a row, stop training
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.2 plateua for learning rate reducing (fix file from cnn_advence)
-"""
-# Creating learning rate reduction callback
+"""# Creating learning rate reduction callback
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
                                                  patience=2,
@@ -259,19 +271,6 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.3 save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
-"""
-# Create TensorBoard callback (already have "create_tensorboard_callback()" from a previous notebook)
-from helper_functions import create_tensorboard_callback
-
-# Create ModelCheckpoint callback to save model's progress
-checkpoint_path = "model_checkpoints/cp.ckpt" # saving weights requires ".ckpt" extension
-model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
-                                                      monitor="val_accuracy",/monitor='val_loss' # save the model weights with best validation accuracy
-                                                      save_best_only=True, # only save the best weights
-                                                      save_weights_only=True, # only save model weights (not whole model)
-                                                      verbose=0) # don't print out whether or not model is being saved 
-"""
-
 # Create a function to implement a ModelCheckpoint callback with a specific filename 
 def create_model_checkpoint(model_name, save_path="model_experiments"):
     import os
@@ -279,9 +278,10 @@ def create_model_checkpoint(model_name, save_path="model_experiments"):
     
     # Create a ModelCheckpoint callback that saves the model's weights only
     checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(save_path, model_name), # create filepath to save model,
+                                                         monitor= "val_accuracy", # can set with val_loss # save the model weights with best validation accuracy
                                                          save_weights_only=True, # set to False to save the entire model
                                                          save_best_only=True, # set to True to save only the best model instead of a model every epoch 
-                                                         save_freq="epoch", # save every epoch
+                                                         #save_freq="epoch", # save every epoch
                                                          verbose=1) # only output a limited amount of text
     return checkpoint_callback
                                             
@@ -290,6 +290,7 @@ def create_model_checkpoint(model_name, save_path="model_experiments"):
 def create_tensorboard_callback(dir_name, experiment_name):
     from datetime import datetime
     import os 
+    import tensorflow as tf
     """
     Creates a TensorBoard callback instand to store log files.
 
@@ -906,7 +907,52 @@ history_10_percent_data_aug = model_2.fit(train_data_10_percent,
                                                      checkpoint_callback])
 """
 
+""" Evaluate the whole model prediction with f1 score of each class
+from sklearn.metrics import classification_report
+print(classification_report(y_labels, pred_classes))
 
+# Get a dictionary of the classification report
+classification_report_dict = classification_report(y_labels, pred_classes, output_dict=True)
+classification_report_dict
+
+# Create empty dictionary f1_scores calculate
+class_f1_scores = {}
+# Loop through classification report items
+for k, v in classification_report_dict.items():
+  if k == "accuracy": # stop once we get to accuracy key
+    break
+  else:
+    # Append class names and f1-scores to new dictionary
+    class_f1_scores[class_names[int(k)]] = v["f1-score"]
+class_f1_scores
+
+
+# Turn f1-scores into dataframe for visualization
+import pandas as pd
+f1_scores = pd.DataFrame({"class_name": list(class_f1_scores.keys()),
+                          "f1-score": list(class_f1_scores.values())}).sort_values("f1-score", ascending=False)
+f1_scores
+
+# Histo chart bar for f1 socre
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(figsize=(12, 25))
+scores = ax.barh(range(len(f1_scores)), f1_scores["f1-score"].values)
+ax.set_yticks(range(len(f1_scores)))
+ax.set_yticklabels(list(f1_scores["class_name"]))
+ax.set_xlabel("f1-score")
+ax.set_title("F1-Scores for 10 Different Classes")
+ax.invert_yaxis(); # reverse the order
+
+def autolabel(rects): # Modified version of: https://matplotlib.org/examples/api/barchart_demo.html
+  Attach a text label above each bar displaying its height (it's value).
+  for rect in rects:
+    width = rect.get_width()
+    ax.text(1.03*width, rect.get_y() + rect.get_height()/1.5,
+            f"{width:.2f}",
+            ha='center', va='bottom')
+
+autolabel(scores)
+"""
 
 """ Fine tune example procedure
 # Check which layers are tuneable (trainable)

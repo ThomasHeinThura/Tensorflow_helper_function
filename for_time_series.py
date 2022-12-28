@@ -230,6 +230,7 @@ def create_model_checkpoint(model_name, save_path="model_experiments"):
 def create_tensorboard_callback(dir_name, experiment_name):
     from datetime import datetime
     import os 
+    import tensorflow as tf
     """
     Creates a TensorBoard callback instand to store log files.
 

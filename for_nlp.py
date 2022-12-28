@@ -523,6 +523,11 @@ def calculate_accuracy_results(y_true, y_pred):
                       "f1": model_f1}
     return model_results
 
+# Create a helper function to compare our baseline results to new model results
+def compare_baseline_to_new_results(baseline_results, new_model_results):
+  for key, value in baseline_results.items():
+    print(f"Baseline {key}: {value:.2f}, New {key}: {new_model_results[key]:.2f}, Difference: {new_model_results[key]-value:.2f}")
+
 # 5.3 confusion matrix 
 # Our function needs a different name to sklearn's plot_confusion_matrix
 def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_size=15, norm=False, savefig=False): 

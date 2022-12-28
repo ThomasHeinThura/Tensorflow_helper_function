@@ -1,56 +1,3 @@
-import tensorflow as tf
-from datetime import datetime
-import itertools
-import numpy as np
-import zipfile
-import os
-import random
-import itertools
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D, Activation
-from tensorflow.keras import Sequential
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import pathlib
-"""
-# Turn off all warnings except for errors
-tf.get_logger().setLevel('ERROR')
-"""
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - # 
-#---- from my helper ---#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-#=------ from cnnn.py ------#
-#---------for adv-cnn.py--------#
-
-# for nlp
-
-
-
-# Create a helper function to compare our baseline results to new model results
-def compare_baseline_to_new_results(baseline_results, new_model_results):
-  for key, value in baseline_results.items():
-    print(f"Baseline {key}: {value:.2f}, New {key}: {new_model_results[key]:.2f}, Difference: {new_model_results[key]-value:.2f}")
-
-#------ from nlp -------#
-
 # you can search search pretrain words embeddings
 """ TextVectorization Tokenizaiton
 import tensorflow as tf
@@ -1881,4 +1828,4 @@ plot_time_series(next_time_steps, future_forecast, format="-", label="Predicted 
 # Procedure 
 """Procedure
 
-"""
+"""f

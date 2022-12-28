@@ -501,6 +501,7 @@ def compare_two_historys(original_history, new_history, initial_epochs=5):
     plt.xlabel('epoch')
     plt.show() 
 
+#Usage : calculate_accuracy_result and compare_two_r
 # Function to evaluate: accuracy, precision, recall, f1-score
 def calculate_accuracy_results(y_true, y_pred):
     from sklearn.metrics import accuracy_score, precision_recall_fscore_support
@@ -522,9 +523,8 @@ def calculate_accuracy_results(y_true, y_pred):
                       "recall": model_recall,
                       "f1": model_f1}
     return model_results
-
 # Create a helper function to compare our baseline results to new model results
-def compare_baseline_to_new_results(baseline_results, new_model_results):
+def compare_two_results(baseline_results, new_model_results):
   for key, value in baseline_results.items():
     print(f"Baseline {key}: {value:.2f}, New {key}: {new_model_results[key]:.2f}, Difference: {new_model_results[key]-value:.2f}")
 

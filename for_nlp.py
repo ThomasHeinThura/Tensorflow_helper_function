@@ -740,7 +740,44 @@ model_4_history = model_4.fit(train_sentences,
 
 """
 
+""" Conv1D model
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_5_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_5")
 
+# Create 1-dimensional convolutional layer to model sequences
+from tensorflow.keras import layers
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_5_embedding(x)
+x = layers.Conv1D(filters=32, kernel_size=5, activation="relu")(x)
+x = layers.GlobalMaxPool1D()(x)
+# x = layers.Dense(64, activation="relu")(x) # optional dense layer
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_5 = tf.keras.Model(inputs, outputs, name="model_5_Conv1D")
+
+# Compile Conv1D model
+model_5.compile(loss="binary_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Get a summary of our 1D convolution model
+model_5.summary()
+
+# Fit the model
+model_5_history = model_5.fit(train_sentences,
+                              train_labels,
+                              epochs=5,
+                              validation_data=(val_sentences, val_labels),
+                              callbacks=[create_tensorboard_callback(SAVE_DIR, 
+                                                                     "Conv1D")])
+
+"""
 
 """ Tensor Board dev
 # Upload TensorBoard dev records

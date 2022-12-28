@@ -75,9 +75,16 @@ def walk_through_dir(dir_path):
   for dirpath, dirnames, filenames in os.walk(dir_path):
     print(f"There are {len(dirnames)} directories and {len(filenames)} images in '{dirpath}'.")
   
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1.2 improt from cvs
-def show_methods_for_import_cvs():
+""" import from cvs:
+import pandas as pd
+from tensorflow import tf.datapath = ‘path/to/your/csv/file’
+df = pd.read_csv(path)
+dataset = Dataset.from_tensor_slices(dict(df))
+"""
+
+# 1.3 import from online data
+def show_methods_for_import_online():
   """
   This is the example procedure to do in cvs data
   import pandas as pd
@@ -123,9 +130,7 @@ def show_methods_for_import_cvs():
   X_test_normal = ct.transform(X_test)
 
   """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 1.3 import from online data
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+
 # 1.4 import from tf.keras.dataset
 def show_methods_for_import_dataset():
   """
@@ -144,9 +149,14 @@ def show_methods_for_import_dataset():
   plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
   plt.title(class_names[train_labels[17]]);
   """
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 2. for visualize import data #
 # 2.1 visualize plot data
+
+
+# 2.2 Visualize classnes from dir
 def view_class_name_from_dir(path):
     """
     View an class name from import data folder
@@ -158,7 +168,7 @@ def view_class_name_from_dir(path):
     return print(class_name)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 2.2 visualize picture
+# 2.3 visualize picture
 # Plot multiple random images of fashion MNIST
 """
 import random
@@ -194,7 +204,7 @@ def view_random_image(target_dir, target_class):
     return img
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
-# 2.3 visualize words and pandas
+# 2.4 visualize words and pandas
 """
 # Download data (same as from Kaggle)
 !wget "https://storage.googleapis.com/ztm_tf_course/nlp_getting_started.zip"
@@ -217,6 +227,7 @@ for row in train_df_shuffled[["text", "target"]][random_index:random_index+5].it
   print(f"Text:\n{text}\n")
   print("---\n")
 """
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 3. for preparation data (normalize and add to pipeline)

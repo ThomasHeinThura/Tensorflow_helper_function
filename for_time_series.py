@@ -316,7 +316,7 @@ tf.keras.utils.plot_model(model)
 """
 
 # Plot the validation and training data separately
-def plot_loss_curves(history):
+def plot_history_loss_curves(history):
     import matplotlib.pyplot as plt
     """
     Returns separate loss curves for training and validation metrics.

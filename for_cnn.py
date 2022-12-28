@@ -522,7 +522,7 @@ def predict_random_image(model, images, true_labels, classes): # predict for fas
                color=color)  # set the color to green or red
 
 # Plot the validation and training data separately
-def plot_loss_curves(history):
+def plot_history_loss_curves(history):
     import matplotlib.pyplot as plt
     """
     Returns separate loss curves for training and validation metrics.
@@ -704,8 +704,49 @@ def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_s
         fig.savefig("confusion_matrix.png")
 
 
+def show_most_wrong_data(): #for computer vision - Need to fix the function and add to my-function:
+    """
+    We need to make pandas to search most wrong data and show imgs
 
+    # 1. Get the filenames of all of our test data
+    filepaths = []
+    for filepath in test_data.list_files("101_food_classes_10_percent/test/*/*.jpg",
+                                         shuffle=False):
+    filepaths.append(filepath.numpy())
+    filepaths[:10]
 
+    # 2. Create a dataframe out of current prediction data for analysis
+    import pandas as pd
+    pred_df = pd.DataFrame({"img_path": filepaths,
+                        "y_true": y_labels,
+                        "y_pred": pred_classes,
+                        "pred_conf": pred_probs.max(axis=1), # get the maximum prediction probability value
+                        "y_true_classname": [class_names[i] for i in y_labels],
+                        "y_pred_classname": [class_names[i] for i in pred_classes]})
+    pred_df.head()
 
+    # 3. Is the prediction correct?
+    pred_df["pred_correct"] = pred_df["y_true"] == pred_df["y_pred"]
+    pred_df.head()
+
+    # 4. Get the top 100 wrong examples
+    top_100_wrong = pred_df[pred_df["pred_correct"] == False].sort_values("pred_conf", ascending=False)[:100]
+    top_100_wrong.head(20)
+
+    # 5. Visualize some of the most wrong examples
+    images_to_view = 9
+    start_index = 10 # change the start index to view more
+    plt.figure(figsize=(15, 10))
+    for i, row in enumerate(top_100_wrong[start_index:start_index+images_to_view].itertuples()):
+        plt.subplot(3, 3, i+1)
+        img = load_and_prep_image(row[1], scale=True)
+        _, _, _, _, pred_prob, y_true, y_pred, _ = row # only interested in a few parameters of each row
+        plt.imshow(img)
+        plt.title(f"actual: {y_true}, pred: {y_pred} \nprob: {pred_prob:.2f}")
+        plt.axis(False)
+    :return:
+    """
+
+### Adv model ####
 
 

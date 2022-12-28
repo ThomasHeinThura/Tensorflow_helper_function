@@ -47,80 +47,6 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 """
-from sklearn.metrics import classification_report
-print(classification_report(y_labels, pred_classes))
-
-# Get a dictionary of the classification report
-classification_report_dict = classification_report(y_labels, pred_classes, output_dict=True)
-classification_report_dict
-
-# Create empty dictionary f1_scores calculate
-class_f1_scores = {}
-# Loop through classification report items
-for k, v in classification_report_dict.items():
-  if k == "accuracy": # stop once we get to accuracy key
-    break
-  else:
-    # Append class names and f1-scores to new dictionary
-    class_f1_scores[class_names[int(k)]] = v["f1-score"]
-class_f1_scores
-
-
-# Turn f1-scores into dataframe for visualization
-import pandas as pd
-f1_scores = pd.DataFrame({"class_name": list(class_f1_scores.keys()),
-                          "f1-score": list(class_f1_scores.values())}).sort_values("f1-score", ascending=False)
-f1_scores
-
-
-import matplotlib.pyplot as plt
-
-fig, ax = plt.subplots(figsize=(12, 25))
-scores = ax.barh(range(len(f1_scores)), f1_scores["f1-score"].values)
-ax.set_yticks(range(len(f1_scores)))
-ax.set_yticklabels(list(f1_scores["class_name"]))
-ax.set_xlabel("f1-score")
-ax.set_title("F1-Scores for 10 Different Classes")
-ax.invert_yaxis(); # reverse the order
-
-def autolabel(rects): # Modified version of: https://matplotlib.org/examples/api/barchart_demo.html
-  Attach a text label above each bar displaying its height (it's value).
-  for rect in rects:
-    width = rect.get_width()
-    ax.text(1.03*width, rect.get_y() + rect.get_height()/1.5,
-            f"{width:.2f}",
-            ha='center', va='bottom')
-
-autolabel(scores)
-"""
-"""
-# Get TensorFlow Datasets
-import tensorflow_datasets as tfds
-# List available datasets
-datasets_list = tfds.list_builders() # get all available datasets in TFDS
-print("food101" in datasets_list) # is the dataset we're after available?
-
-# Load in the data (takes about 5-6 minutes in Google Colab)
-(train_data, test_data), ds_info = tfds.load(name="food101", # target dataset to get from TFDS
-                                             split=["train", "validation"], # what splits of data should we get? note: not all datasets have train, valid, test
-                                             shuffle_files=True, # shuffle files on download?
-                                             as_supervised=True, # download data in tuple format (sample, label), e.g. (image, label)
-                                             with_info=True) # include dataset metadata? if so, tfds.load() returns tuple (data, ds_info)
-"""
-
-"""
-# Create TensorBoard callback (already have "create_tensorboard_callback()" from a previous notebook)
-from helper_functions import create_tensorboard_callback
-
-# Create ModelCheckpoint callback to save model's progress
-checkpoint_path = "model_checkpoints/cp.ckpt" # saving weights requires ".ckpt" extension
-model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
-                                                      monitor="val_accuracy", # save the model weights with best validation accuracy
-                                                      save_best_only=True, # only save the best weights
-                                                      save_weights_only=True, # only save model weights (not whole model)
-                                                      verbose=0) # don't print out whether or not model is being saved 
-"""
-"""
 # Turn on mixed precision training
 from tensorflow.keras import mixed_precision
 mixed_precision.set_global_policy(policy="mixed_float16") # set global policy to mixed precision 
@@ -128,16 +54,7 @@ mixed_precision.set_global_policy(policy="mixed_float16") # set global policy to
 mixed_precision.global_policy() # should output "mixed_float16" (if your GPU is compatible with mixed precision)
 """
 """
-# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
-early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=3) # if val loss decreases for 3 epochs in a row, stop training
 
-# Create ModelCheckpoint callback to save best model during fine-tuning
-checkpoint_path = "fine_tune_checkpoints/"
-model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
-                                                      save_best_only=True,
-                                                      monitor="val_loss")
-                                                      
 # Creating learning rate reduction callback
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)

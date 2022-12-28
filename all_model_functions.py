@@ -46,35 +46,7 @@ import random
 tf.get_logger().setLevel('ERROR')
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 1. for import data #
-# 1.1 import from local data
-def unzip_data(filename):
-  """
-  Unzips filename into the current working directory.
 
-  Args:
-    filename (str): a filepath to a target zip folder to be unzipped.
-  """
-  zip_ref = zipfile.ZipFile(filename, "r")
-  zip_ref.extractall()
-  zip_ref.close()
-# data work thorugh dirpath for CNN
-def walk_through_dir(dir_path):
-  """
-  Walks through dir_path returning its contents.
-
-  Args:
-    dir_path (str): target directory
-  
-  Returns:
-    A print out of:
-      number of subdiretories in dir_path
-      number of images (files) in each subdirectory
-      name of each subdirectory
-  """
-  for dirpath, dirnames, filenames in os.walk(dir_path):
-    print(f"There are {len(dirnames)} directories and {len(filenames)} images in '{dirpath}'.")
-  
 # 1.2 improt from cvs
 """ import from cvs:
 import pandas as pd
@@ -129,25 +101,6 @@ def show_methods_for_import_online():
   X_train_normal = ct.transform(X_train)
   X_test_normal = ct.transform(X_test)
 
-  """
-
-# 1.4 import from tf.keras.dataset
-def show_methods_for_import_dataset():
-  """
-  import tensorflow as tf
-  from tensorflow.keras.datasets import fashion_mnist
-
-  # The data has already been sorted into training and test sets for us
-  (train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
-
-  # Viewing the single example for fashion_mnist
-  # Plot a single example
-  import matplotlib.pyplot as plt
-  plt.imshow(train_data[7]);
-
-  # Plot an example image and its label
-  plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
-  plt.title(class_names[train_labels[17]]);
   """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
@@ -205,7 +158,7 @@ def view_random_image(target_dir, target_class):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
 # 2.4 visualize words and pandas
-"""
+""" 
 # Download data (same as from Kaggle)
 !wget "https://storage.googleapis.com/ztm_tf_course/nlp_getting_started.zip"
 
@@ -3621,3 +3574,7 @@ plot_time_series(next_time_steps, future_forecast, format="-", label="Predicted 
 
 #---------- from adv time sereies ---------#
 
+# Procedure 
+"""Procedure
+
+"""

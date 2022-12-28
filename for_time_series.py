@@ -187,15 +187,13 @@ test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
 
 # 4. Fit the model and make sure to remember history and callbacks 
 # 4.1 early stopping callbacks (fix file from cnn_advence)
-"""
-# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
+"""# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
                                                   patience=3) # if val loss decreases for 3 epochs in a row, stop training
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.2 plateua for learning rate reducing (fix file from cnn_advence)
-"""
-# Creating learning rate reduction callback
+"""# Creating learning rate reduction callback
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
                                                  patience=2,
@@ -204,26 +202,19 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.3 save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
-"""
-# Create TensorBoard callback (already have "create_tensorboard_callback()" from a previous notebook)
-from helper_functions import create_tensorboard_callback
-
-# Create ModelCheckpoint callback to save model's progress
-checkpoint_path = "model_checkpoints/cp.ckpt" # saving weights requires ".ckpt" extension
-model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
-                                                      monitor="val_accuracy",/monitor='val_loss' # save the model weights with best validation accuracy
-                                                      save_best_only=True, # only save the best weights
-                                                      save_weights_only=True, # only save model weights (not whole model)
-                                                      verbose=0) # don't print out whether or not model is being saved 
-"""
-
 # Create a function to implement a ModelCheckpoint callback with a specific filename 
 def create_model_checkpoint(model_name, save_path="model_experiments"):
     import os
     import tensorflow as tf
-    return tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(save_path, model_name), # create filepath to save model
-                                                verbose=0, # only output a limited amount of text
-                                                save_best_only=True) # save only the best model to file
+    
+    # Create a ModelCheckpoint callback that saves the model's weights only
+    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(save_path, model_name), # create filepath to save model,
+                                                         monitor= "val_accuracy", # can set with val_loss # save the model weights with best validation accuracy
+                                                         save_weights_only=True, # set to False to save the entire model
+                                                         save_best_only=True, # set to True to save only the best model instead of a model every epoch 
+                                                         #save_freq="epoch", # save every epoch
+                                                         verbose=1) # only output a limited amount of text
+    return checkpoint_callback
                                             
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 4.4 Creat tensorboard and can show history of models
@@ -251,7 +242,7 @@ def create_tensorboard_callback(dir_name, experiment_name):
 #4.5 mixed precision training
 # Turn on mixed precision training (that is to train with faster)
 # if you need check tensorflow.keras.mixed_precision
-"""
+""" mixed precison i.e train model with nvidia adv cuda
 from tensorflow.keras import mixed_precision
 mixed_precision.set_global_policy(policy="mixed_float16") # set global policy to mixed precision 
 

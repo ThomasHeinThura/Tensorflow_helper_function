@@ -584,4 +584,16 @@ def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_s
         fig.savefig("confusion_matrix.png")
 
 
+""" Tensor Board dev
+# Upload TensorBoard dev records
+!tensorboard dev upload --logdir ./tensorflow_hub/ \
+  --name "EfficientNetB0 vs. ResNet50V2" \
+  --description "Comparing two different TF Hub feature extraction models architectures using 10% of training images" \
+  --one_shot
+  
+# Check out experiments
+!tensorboard dev list
 
+# Delete an experiment
+!tensorboard dev delete --experiment_id n6kd8XZ3Rdy1jSgSLH5WjA
+"""

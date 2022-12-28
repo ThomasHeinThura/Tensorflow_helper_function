@@ -148,3 +148,148 @@ def show_methods_for_import_online():
   X_test_normal = ct.transform(X_test)
 
   """
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# 2. for visualize import data #
+# 2.1 visualize plot data
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# 3. for preparation data (normalize and add to pipeline)
+# 3.1 Train test split
+"""
+from sklearn.model_selection import train_test_split
+
+# Use train_test_split to split training data into training and validation sets
+train_sentences, val_sentences, train_labels, val_labels = train_test_split(train_df_shuffled["text"].to_numpy(),
+                                                                            train_df_shuffled["target"].to_numpy(),
+                                                                            test_size=0.1, # dedicate 10% of samples to validation set
+                                                                            random_state=42) # random state for reproducibility
+"""
+
+# 3.3 data pipe line for best performace
+"""
+# Map preprocessing function to training data (and paralellize)
+train_data = train_data.map(map_func=preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
+# Shuffle train_data and turn it into batches and prefetch it (load it faster)
+train_data = train_data.shuffle(buffer_size=1000).batch(batch_size=32).prefetch(buffer_size=tf.data.AUTOTUNE)
+
+# Map prepreprocessing function to test data
+test_data = test_data.map(preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
+# Turn test data into batches (don't need to shuffle)
+test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
+"""
+
+# 3.5 windows and horizon for timeseries
+""" taken form time series py"""
+
+# 4. Fit the model and make sure to remember history and callbacks 
+# 4.1 early stopping callbacks (fix file from cnn_advence)
+"""
+# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
+                                                  patience=3) # if val loss decreases for 3 epochs in a row, stop training
+"""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# 4.2 plateua for learning rate reducing (fix file from cnn_advence)
+"""
+# Creating learning rate reduction callback
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
+                                                 factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
+                                                 patience=2,
+                                                 verbose=1, # print out when learning rate goes down 
+                                                 min_lr=1e-7)
+"""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# 4.3 save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
+"""
+# Create TensorBoard callback (already have "create_tensorboard_callback()" from a previous notebook)
+from helper_functions import create_tensorboard_callback
+
+# Create ModelCheckpoint callback to save model's progress
+checkpoint_path = "model_checkpoints/cp.ckpt" # saving weights requires ".ckpt" extension
+model_checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
+                                                      monitor="val_accuracy",/monitor='val_loss' # save the model weights with best validation accuracy
+                                                      save_best_only=True, # only save the best weights
+                                                      save_weights_only=True, # only save model weights (not whole model)
+                                                      verbose=0) # don't print out whether or not model is being saved 
+"""
+
+
+
+
+# Create a function to implement a ModelCheckpoint callback with a specific filename 
+def create_model_checkpoint(model_name, save_path="model_experiments"):
+    import os
+    return tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(save_path, model_name), # create filepath to save model
+                                                verbose=0, # only output a limited amount of text
+                                                save_best_only=True) # save only the best model to file
+                                            
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+# 4.4 Creat tensorboard and can show history of models
+def create_tensorboard_callback(dir_name, experiment_name):
+  """
+  Creates a TensorBoard callback instand to store log files.
+
+  Stores log files with the filepath:
+    "dir_name/experiment_name/current_datetime/"
+
+  Args:
+    dir_name: target directory to store TensorBoard log files
+    experiment_name: name of experiment directory (e.g. efficientnet_model_1)
+  """
+  log_dir = dir_name + "/" + experiment_name + "/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+  tensorboard_callback = tf.keras.callbacks.TensorBoard(
+      log_dir=log_dir
+  )
+  print(f"Saving TensorBoard log files to: {log_dir}")
+  return tensorboard_callback
+
+#4.5 mixed precision training
+# Turn on mixed precision training (that is to train with faster)
+# if you need check tensorflow.keras.mixed_precision
+"""
+from tensorflow.keras import mixed_precision
+mixed_precision.set_global_policy(policy="mixed_float16") # set global policy to mixed precision 
+
+mixed_precision.global_policy() # should output "mixed_float16" (if your GPU is compatible with mixed precision)
+
+example build model for mix precision you need to add dtype=tf.float32 to use mix precsion
+from tensorflow.keras import layers
+
+# Create base model
+input_shape = (224, 224, 3)
+base_model = tf.keras.applications.EfficientNetB0(include_top=False)
+base_model.trainable = False # freeze base model layers
+
+# Create Functional model 
+inputs = layers.Input(shape=input_shape, name="input_layer")
+# Note: EfficientNetBX models have rescaling built-in but if your model didn't you could have a layer like below
+# x = layers.Rescaling(1./255)(x)
+x = base_model(inputs, training=False) # set base_model to inference mode only
+x = layers.GlobalAveragePooling2D(name="pooling_layer")(x)
+x = layers.Dense(len(class_names))(x) # want one output neuron per class 
+# Separate activation of output layer so we can output float32 activations
+outputs = layers.Activation("softmax", dtype=tf.float32, name="softmax_float32")(x) 
+model = tf.keras.Model(inputs, outputs)
+
+# Compile the model
+model.compile(loss="sparse_categorical_crossentropy", # Use sparse_categorical_crossentropy when labels are *not* one-hot
+              optimizer=tf.keras.optimizers.Adam(),
+              metrics=["accuracy"])
+
+# Check the dtype_policy attributes of layers in our model
+for layer in model.layers:
+    print(layer.name, layer.trainable, layer.dtype, layer.dtype_policy) # Check the dtype policy of layers
+
+# Check the layers in the base model and see what dtype policy they're using
+for layer in model.layers[1].layers[:20]: # only check the first 20 layers to save output space
+    print(layer.name, layer.trainable, layer.dtype, layer.dtype_policy)
+
+"""
+
+
+
+

@@ -230,7 +230,6 @@ text_vectorizer = TextVectorization(max_tokens=max_vocab_length,
                                     output_mode="int",
                                     output_sequence_length=max_length)
 """
-
 """ check with random sentence
 # Choose a random sentence from the training dataset and tokenize it
 random_sentence = random.choice(train_sentences)
@@ -238,7 +237,7 @@ print(f"Original text:\n{random_sentence}\
       \n\nVectorized version:")
 text_vectorizer([random_sentence])
 """
-""" also check most command words
+""" also check most command or unique words in vocab
 # Get the unique words in the vocabulary
 words_in_vocab = text_vectorizer.get_vocabulary()
 top_5_words = words_in_vocab[:5] # most common tokens (notice the [UNK] token for "unknown" words)
@@ -247,7 +246,6 @@ print(f"Number of words in vocab: {len(words_in_vocab)}")
 print(f"Top 5 most common words: {top_5_words}") 
 print(f"Bottom 5 least common words: {bottom_5_words}")
 """
-
 """ Embedding layer
 tf.random.set_seed(42)
 from tensorflow.keras import layers
@@ -399,6 +397,8 @@ def make_simple_nlp_model():
     outputs = layers.Dense(1, activation="sigmoid")(x)
     model = tf.keras.Model(inputs, outputs, name="model_2_LSTM")
     return model
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 5. visualize the model and plot prediction and matrix
@@ -609,6 +609,137 @@ def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_s
     # Save the figure to the current working directory
     if savefig:
         fig.savefig("confusion_matrix.png")
+
+# adv model and basline model or procedures
+
+""" Weight matrix or embedding weight in models
+# Get the vocabulary from the text vectorization layer
+words_in_vocab = text_vectorizer.get_vocabulary()
+len(words_in_vocab), words_in_vocab[:10]
+
+
+# Get the weight matrix of embedding layer 
+# (these are the numerical patterns between the text in the training dataset the model has learned)
+embed_weights = model_1.get_layer("embedding_1").get_weights()[0]
+print(embed_weights.shape) # same size as vocab size and embedding_dim (each word is a embedding_dim size vector)
+"""
+
+""" Naive bayes model to check performance
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+
+# Create tokenization and modelling pipeline
+model_0 = Pipeline([
+                    ("tfidf", TfidfVectorizer()), # convert words to numbers using tfidf
+                    ("clf", MultinomialNB()) # model the text
+])
+
+# Fit the pipeline to the training data
+model_0.fit(train_sentences, train_labels)
+
+baseline_score = model_0.score(val_sentences, val_labels)
+print(f"Our baseline model achieves an accuracy of: {baseline_score*100:.2f}%")
+
+OR
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+
+# Create a pipeline
+model_0 = Pipeline([
+  ("tf-idf", TfidfVectorizer()),
+  ("clf", MultinomialNB())
+])
+
+# Fit the pipeline to the training data
+model_0.fit(X=train_sentences, 
+            y=train_labels_encoded);
+
+"""
+
+""" Basic LSTM model
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_2_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_2")
+
+
+# Create LSTM model
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_2_embedding(x)
+print(x.shape)
+# x = layers.LSTM(64, return_sequences=True)(x) # return vector for each word in the Tweet (you can stack RNN cells as long as return_sequences=True)
+x = layers.LSTM(64)(x) # return vector for whole sequence
+print(x.shape)
+# x = layers.Dense(64, activation="relu")(x) # optional dense layer on top of output of LSTM cell
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_2 = tf.keras.Model(inputs, outputs, name="model_2_LSTM")
+"""
+
+""" GRU model
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_3_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_3")
+
+# Build an RNN using the GRU cell
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_3_embedding(x)
+# x = layers.GRU(64, return_sequences=True) # stacking recurrent cells requires return_sequences=True
+x = layers.GRU(64)(x) 
+# x = layers.Dense(64, activation="relu")(x) # optional dense layer after GRU cell
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_3 = tf.keras.Model(inputs, outputs, name="model_3_GRU")
+"""
+
+""" Bilateral LSTM
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_4_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_4")
+
+# Build a Bidirectional RNN in TensorFlow
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_4_embedding(x)
+# x = layers.Bidirectional(layers.LSTM(64, return_sequences=True))(x) # stacking RNN layers requires return_sequences=True
+x = layers.Bidirectional(layers.LSTM(64))(x) # bidirectional goes both ways so has double the parameters of a regular LSTM layer
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_4 = tf.keras.Model(inputs, outputs, name="model_4_Bidirectional")
+
+# Compile
+model_4.compile(loss="binary_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Get a summary of our bidirectional model
+model_4.summary()
+
+# Fit the model (takes longer because of the bidirectional layers)
+model_4_history = model_4.fit(train_sentences,
+                              train_labels,
+                              epochs=5,
+                              validation_data=(val_sentences, val_labels),
+                              callbacks=[create_tensorboard_callback(SAVE_DIR, "bidirectional_RNN")])
+
+"""
+
 
 
 """ Tensor Board dev

@@ -1,30 +1,4 @@
 
-""" COnv1D layers
-
-OR
-
-# Create 1D convolutional model to process sequences
-inputs = layers.Input(shape=(1,), dtype=tf.string)
-text_vectors = text_vectorizer(inputs) # vectorize text inputs
-token_embeddings = token_embed(text_vectors) # create embedding
-x = layers.Conv1D(64, kernel_size=5, padding="same", activation="relu")(token_embeddings)
-x = layers.GlobalAveragePooling1D()(x) # condense the output of our feature vector
-outputs = layers.Dense(num_classes, activation="softmax")(x)
-model_1 = tf.keras.Model(inputs, outputs)
-
-# Compile
-model_1.compile(loss="categorical_crossentropy", # if your labels are integer form (not one hot) use sparse_categorical_crossentropy
-                optimizer=tf.keras.optimizers.Adam(),
-                metrics=["accuracy"])
-
-# Fit the model
-model_1_history = model_1.fit(train_dataset,
-                              steps_per_epoch=int(0.1 * len(train_dataset)), # only fit on 10% of batches for faster training time
-                              epochs=3,
-                              validation_data=valid_dataset,
-                              validation_steps=int(0.1 * len(valid_dataset))) # only validate on 10% of batches
-
-"""
 
 """ Pretrained embeddings "Universal sentence encoder from tensorflow hub"
 # Example of pretrained embedding with universal sentence encoder - https://tfhub.dev/google/universal-sentence-encoder/4
@@ -105,8 +79,7 @@ model_2.fit(train_dataset,
             validation_steps=int(0.1 * len(valid_dataset)))
 
 """
-"""
-# One kind of correct way (there are more) to make data subset
+"""# One kind of correct way (there are more) to make data subset
 # (split the already split train_sentences/train_labels)
 train_sentences_90_percent, train_sentences_10_percent, train_labels_90_percent, train_labels_10_percent = train_test_split(np.array(train_sentences),
                                                                                                                             train_labels,
@@ -329,8 +302,7 @@ def preprocess_text_with_line_numbers(filename):
   
   return abstract_samples
 
-"""
-# Get data from file and preprocess it
+"""# Get data from file and preprocess it
 %%time
 train_samples = preprocess_text_with_line_numbers(data_dir + "train.txt")
 val_samples = preprocess_text_with_line_numbers(data_dir + "dev.txt") # dev is another name for validation set

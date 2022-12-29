@@ -7,19 +7,17 @@ from datetime import datetime
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
-epoch = 20
+epoch = 50
 input_shape = (32, 32, 3)
 
 # import data
 (train_features,train_labels), (test_features, test_labels) = keras.datasets.cifar10.load_data()
 
-
-print (train_features[0])
-
 train_features = tf.cast(train_features, dtype=tf.float32) / 255
 test_features = tf.cast(test_features, dtype=tf.float32) / 255
 train_labels = keras.utils.to_categorical(train_labels, num_classes=10)
 test_labels = keras.utils.to_categorical(test_labels, num_classes=10)
+
 # Check the data shape
 print(
     f"Train_features : {train_features.shape} {train_features.dtype} \n" 
@@ -49,15 +47,19 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 
 #Build the model
 inputs = layers.Input(shape=input_shape, name="input_layer")
-x = layers.Conv2D(64, kernel_size=3, activation="relu", name="layer_1")(inputs) 
-x = layers.MaxPooling2D(pool_size= 2, name="pooling_1")(x) 
-x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_2")(x) 
-#x = layers.MaxPooling2D(pool_size= 2, name="pooling_2")(x) 
-#x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_3")(x) 
-#x = layers.MaxPooling2D(pool_size= 2, name="pooling_3")(x)
+x = layers.Conv2D(256, kernel_size=3, padding='same', activation="relu", name="layer_1")(inputs) 
+x = layers.Conv2D(128, kernel_size=3, padding='same', activation="relu", name="layer_2")(x) 
+x = layers.MaxPooling2D(2)(x)
+x = layers.Dropout(0.2)(x)
+x = layers.Conv2D(64, kernel_size=3, padding='same', activation="relu", name="layer_3")(x) 
+x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_4")(x) 
+x = layers.MaxPooling2D(2)(x)
+x = layers.Dropout(0.2)(x)
+#x = layers.AveragePooling2D(2)(x) 
+#x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_5")(x) 
+#x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_6")(x) 
 x = layers.Flatten()(x)
-x = layers.Dropout(0.5)(x)
-#x = layers.Dense(100, activation="relu", name ="hidden_layer")(x)
+#x = layers.Dense(100, activation="relu", name="Dense_1")(x)
 outputs = layers.Dense(10, activation="softmax",name="output_layer")(x)      
 model = tf.keras.Model(inputs, outputs) 
 
@@ -71,7 +73,7 @@ start = datetime.now()
 history_model = model.fit(train_dataset,
                           steps_per_epoch=len(train_dataset),
                           validation_data=valid_dataset,
-                          validation_steps=int(0.1*len(valid_dataset)),
+                          validation_steps=int(0.25*len(valid_dataset)),
                           callbacks=[early_stopping, reduce_lr],
                           epochs=epoch) 
 end = datetime.now()

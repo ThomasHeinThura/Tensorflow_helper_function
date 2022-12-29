@@ -149,88 +149,6 @@ def show_methods_for_import_online():
 
   """
 
-
-""" Procedure Nlp data import from text file
-
-# Start by using the 20k dataset
-data_dir = "pubmed-rct/PubMed_20k_RCT_numbers_replaced_with_at_sign/"
-
-# Check all of the filenames in the target directory
-import os
-filenames = [data_dir + filename for filename in os.listdir(data_dir)]
-filenames
-"""
-# Create function to read the lines of a document
-def get_lines(filename):
-  """
-  Reads filename (a text file) and returns the lines of text as a list.
-  
-  Args:
-      filename: a string containing the target filepath to read.
-  
-  Returns:
-      A list of strings with one string per line from the target filename.
-      For example:
-      ["this is the first line of filename",
-       "this is the second line of filename",
-       "..."]
-  """
-  with open(filename, "r") as f:
-    return f.readlines()
-""" get_lines example
-train_lines = get_lines(data_dir+"train.txt")
-train_lines[:20] # the whole first example of an abstract + a little more of the next one
-"""
-def preprocess_text_with_line_numbers(filename):
-  """Returns a list of dictionaries of abstract line data.
-
-  Takes in filename, reads its contents and sorts through each line,
-  extracting things like the target label, the text of the sentence,
-  how many sentences are in the current abstract and what sentence number
-  the target line is.
-
-  Args:
-      filename: a string of the target text file to read and extract line data
-      from.
-
-  Returns:
-      A list of dictionaries each containing a line from an abstract,
-      the lines label, the lines position in the abstract and the total number
-      of lines in the abstract where the line is from. For example:
-
-      [{"target": 'CONCLUSION',
-        "text": The study couldn't have gone better, turns out people are kinder than you think",
-        "line_number": 8,
-        "total_lines": 8}]
-  """
-  input_lines = get_lines(filename) # get all lines from filename
-  abstract_lines = "" # create an empty abstract
-  abstract_samples = [] # create an empty list of abstracts
-  
-  # Loop through each line in target file
-  for line in input_lines:
-    if line.startswith("###"): # check to see if line is an ID line
-      abstract_id = line
-      abstract_lines = "" # reset abstract string
-    elif line.isspace(): # check to see if line is a new line
-      abstract_line_split = abstract_lines.splitlines() # split abstract into separate lines
-
-      # Iterate through each line in abstract and count them at the same time
-      for abstract_line_number, abstract_line in enumerate(abstract_line_split):
-        line_data = {} # create empty dict to store data from line
-        target_text_split = abstract_line.split("\t") # split target label from text
-        line_data["target"] = target_text_split[0] # get target label
-        line_data["text"] = target_text_split[1].lower() # get target text and lower it
-        line_data["line_number"] = abstract_line_number # what number line does the line appear in the abstract?
-        line_data["total_lines"] = len(abstract_line_split) - 1 # how many total lines are in the abstract? (start from 0)
-        abstract_samples.append(line_data) # add line data to abstract samples list
-    
-    else: # if the above conditions aren't fulfilled, the line contains a labelled sentence
-      abstract_lines += line
-  
-  return abstract_samples
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 2. for visualize import data #
@@ -639,6 +557,18 @@ all_model_results = pd.DataFrame({"baseline": baseline_results,
 all_model_results = all_model_results.transpose()
 all_model_results
 
+OR
+
+# Combine model results into a DataFrame
+all_model_results = pd.DataFrame({"baseline": baseline_results,
+                                  "custom_token_embed_conv1d": model_1_results,
+                                  "pretrained_token_embed": model_2_results,
+                                  "custom_char_embed_conv1d": model_3_results,
+                                  "hybrid_char_token_embed": model_4_results,
+                                  "tribrid_pos_char_token_embed": model_5_results})
+all_model_results = all_model_results.transpose()
+all_model_results
+
 # Plot and compare all of the model results
 all_model_results.plot(kind="bar", figsize=(10, 7)).legend(bbox_to_anchor=(1.0, 1.0));
 """
@@ -669,6 +599,31 @@ for row in most_wrong[-10:].itertuples():
   print(f"Target: {target}, Pred: {int(pred)}, Prob: {prob}")
   print(f"Text:\n{text}\n")
   print("----\n")
+
+OR
+
+%%time
+# Get list of class names of test predictions
+test_pred_classes = [label_encoder.classes_[pred] for pred in test_preds]
+test_pred_classes
+
+# Create prediction-enriched test dataframe
+test_df["prediction"] = test_pred_classes # create column with test prediction class names
+test_df["pred_prob"] = tf.reduce_max(test_pred_probs, axis=1).numpy() # get the maximum prediction probability
+test_df["correct"] = test_df["prediction"] == test_df["target"] # create binary column for whether the prediction is right or not
+test_df.head(20)
+
+# Find top 100 most wrong samples (note: 100 is an abitrary number, you could go through all of them if you wanted)
+top_100_wrong = test_df[test_df["correct"] == False].sort_values("pred_prob", ascending=False)[:100]
+top_100_wrong
+
+# Investigate top wrong preds
+for row in top_100_wrong[0:10].itertuples(): # adjust indexes to view different samples
+  _, target, text, line_number, total_lines, prediction, pred_prob, _ = row
+  print(f"Target: {target}, Pred: {prediction}, Prob: {pred_prob}, Line number: {line_number}, Total lines: {total_lines}\n")
+  print(f"Text:\n{text}\n")
+  print("-----\n")
+
 
 """
 
@@ -730,7 +685,6 @@ def show_time_taken_to_predict(model, samples):
     total_time = end_time-start_time # calculate how long predictions took to make
     time_per_pred = total_time/len(samples) # find prediction time per sample
     return total_time, time_per_pred
-
 """ Time and preformace trade off Procedures
 # Calculate TF Hub Sentence Encoder prediction times
 model_6_total_pred_time, model_6_time_per_pred = pred_timer(model_6, val_sentences)
@@ -750,12 +704,6 @@ plt.title("F1-score versus time per prediction")
 plt.xlabel("Time per prediction")
 plt.ylabel("F1-Score");
 """
-
-
-
-
-
-
 
 """ Save the model 
 model_6.save("model_6.h5")

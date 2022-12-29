@@ -289,9 +289,9 @@ model_7.fit(train_dataset,
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # Ensemble model (stacking different models together make dision)
-def get_ensemble_models(horizon=HORIZON, 
-                        train_data=train_dataset,
-                        test_data=test_dataset,
+def get_ensemble_models(horizon, 
+                        train_data,
+                        test_data,
                         num_iter=10, 
                         num_epochs=100, 
                         loss_fns=["mae", "mse", "mape"]):
@@ -358,6 +358,24 @@ def make_ensemble_preds(ensemble_models, data):
     ensemble_preds.append(preds)
   return tf.constant(tf.squeeze(ensemble_preds))
 
+# Find upper and lower bounds of ensemble predictions
+def get_upper_lower(preds): # 1. Take the predictions of multiple randomly initialized deep learning neural networks
+  import tensorflow as tf
+  import matplotlib.pyplot as plt
+  
+  # 2. Measure the standard deviation of the predictions
+  std = tf.math.reduce_std(preds, axis=0)
+  
+  # 3. Multiply the standard deviation by 1.96
+  interval = 1.96 * std # https://en.wikipedia.org/wiki/1.96 
+
+  # 4. Get the prediction interval upper and lower bounds
+  preds_mean = tf.reduce_mean(preds, axis=0)
+  lower, upper = preds_mean - interval, preds_mean + interval
+  return lower, upper
+
+
+
 """# Create a list of ensemble predictions
 ensemble_preds = make_ensemble_preds(ensemble_models=ensemble_models,
                                      data=test_dataset)
@@ -367,4 +385,24 @@ ensemble_preds
 ensemble_results = evaluate_preds(y_true=y_test,
                                   y_pred=np.median(ensemble_preds, axis=0)) # take the median across all ensemble predictions
 ensemble_results
+
+# Get the upper and lower bounds of the 95% 
+lower, upper = get_upper_lower(preds=ensemble_preds)
+
+# Get the median values of our ensemble preds
+ensemble_median = np.median(ensemble_preds, axis=0)
+
+# Plot the median of our ensemble preds along with the prediction intervals (where the predictions fall between)
+offset=500
+plt.figure(figsize=(10, 7))
+plt.plot(X_test.index[offset:], y_test[offset:], "g", label="Test Data")
+plt.plot(X_test.index[offset:], ensemble_median[offset:], "k-", label="Ensemble Median")
+plt.xlabel("Date")
+plt.ylabel("BTC Price")
+plt.fill_between(X_test.index[offset:], 
+                 (lower)[offset:], 
+                 (upper)[offset:], label="Prediction Intervals")
+plt.legend(loc="upper left", fontsize=14);
+
+
 """

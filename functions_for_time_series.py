@@ -690,6 +690,77 @@ def evaluate_preds(y_true, y_pred):
           "mape": mape.numpy(),
           "mase": mase.numpy()}
 
+# 1. Create function to make predictions into the future
+def make_future_forecast(values, model, into_future, window_size) -> list:
+  import tensorflow as tf
+  import numpy as np
+  """
+  Makes future forecasts into_future steps after values ends.
+
+  Returns future forecasts as list of floats.
+
+  Example test:
+    future_forecast = make_future_forecast(values=y_all,
+                                       model=model_9,
+                                       into_future=INTO_FUTURE,
+                                       window_size=WINDOW_SIZE)
+
+    future_forecast[:10]
+  """
+  # 2. Make an empty list for future forecasts/prepare data to forecast on
+  future_forecast = []
+  last_window = values[-window_size:] # only want preds from the last window (this will get updated)
+
+  # 3. Make INTO_FUTURE number of predictions, altering the data which gets predicted on each time 
+  for _ in range(into_future):
+    
+    # Predict on last window then append it again, again, again (model starts to make forecasts on its own forecasts)
+    future_pred = model.predict(tf.expand_dims(last_window, axis=0))
+    print(f"Predicting on: \n {last_window} -> Prediction: {tf.squeeze(future_pred).numpy()}\n")
+    
+    # Append predictions to future_forecast
+    future_forecast.append(tf.squeeze(future_pred).numpy())
+    # print(future_forecast)
+
+    # Update last window with new pred and get WINDOW_SIZE most recent preds (model was trained on WINDOW_SIZE windows)
+    last_window = np.append(last_window, future_pred)[-window_size:]
+  
+  return future_forecast
+
+def get_future_dates(start_date, into_future, offset=1):
+  import numpy as np
+  """
+  Returns array of datetime values from ranging from start_date to start_date+horizon.
+
+  start_date: date to start range (np.datetime64)
+  into_future: number of days to add onto start date for range (int)
+  offset: number of days to offset start_date by (default 1)
+
+  Example test:
+  Last timestep of timesteps (currently in np.datetime64 format)
+    last_timestep = bitcoin_prices.index[-1]
+    last_timestep
+
+  Get next two weeks of timesteps
+    next_time_steps = get_future_dates(start_date=last_timestep, 
+                                       into_future=INTO_FUTURE)
+    next_time_steps
+  """
+  start_date = start_date + np.timedelta64(offset, "D") # specify start date, "D" stands for day
+  end_date = start_date + np.timedelta64(into_future, "D") # specify end date
+  return np.arange(start_date, end_date, dtype="datetime64[D]") # return a date range between start date and end date
+"""Plot without gap
+# Insert last timestep/final price so the graph doesn't look messed
+next_time_steps = np.insert(next_time_steps, 0, last_timestep)
+future_forecast = np.insert(future_forecast, 0, btc_price[-1])
+next_time_steps, future_forecast
+
+# Plot future price predictions of Bitcoin
+plt.figure(figsize=(10, 7))
+plot_time_series(bitcoin_prices.index, btc_price, start=2500, format="-", label="Actual BTC Price")
+plot_time_series(next_time_steps, future_forecast, format="-", label="Predicted BTC Price")
+
+"""
 
 # 5.3 confusion matrix 
 # Our function needs a different name to sklearn's plot_confusion_matrix

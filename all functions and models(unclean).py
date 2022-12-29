@@ -44,6 +44,13 @@ import random
 """
 # Turn off all warnings except for errors
 tf.get_logger().setLevel('ERROR')
+
+Level | Level for Humans | Level Description                  
+ -------|------------------|------------------------------------ 
+  0     | DEBUG            | [Default] Print all messages       
+  1     | INFO             | Filter out INFO messages           
+  2     | WARNING          | Filter out INFO & WARNING messages 
+  3     | ERROR            | Filter out all messages      
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # 1. for import data #

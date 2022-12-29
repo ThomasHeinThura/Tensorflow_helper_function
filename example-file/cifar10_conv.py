@@ -7,7 +7,7 @@ from datetime import datetime
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
-epoch = 50
+epoch = 10
 input_shape = (32, 32, 3)
 
 # import data
@@ -29,9 +29,9 @@ print(
 # Preprocess the data
 # Turn our data into TensorFlow Datasets
 train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels))
-train_dataset =  train_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
+train_dataset =  train_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
 valid_dataset = tf.data.Dataset.from_tensor_slices((test_features,test_labels))
-valid_dataset = valid_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
+valid_dataset = valid_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
 print(f"Train : {train_dataset} \n"
       f"Test : {valid_dataset}")
 
@@ -47,19 +47,11 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 
 #Build the model
 inputs = layers.Input(shape=input_shape, name="input_layer")
-x = layers.Conv2D(256, kernel_size=3, padding='same', activation="relu", name="layer_1")(inputs) 
-x = layers.Conv2D(128, kernel_size=3, padding='same', activation="relu", name="layer_2")(x) 
+x = layers.Conv2D(32, kernel_size=3, padding='same', activation="relu", name="layer_1")(inputs) 
 x = layers.MaxPooling2D(2)(x)
-x = layers.Dropout(0.2)(x)
-x = layers.Conv2D(64, kernel_size=3, padding='same', activation="relu", name="layer_3")(x) 
-x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_4")(x) 
-x = layers.MaxPooling2D(2)(x)
-x = layers.Dropout(0.2)(x)
-#x = layers.AveragePooling2D(2)(x) 
-#x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_5")(x) 
-#x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_6")(x) 
+x = layers.Conv2D(32, kernel_size=3, padding='same', activation="relu", name="layer_2")(x) 
 x = layers.Flatten()(x)
-#x = layers.Dense(100, activation="relu", name="Dense_1")(x)
+x = layers.Dense(100, activation="relu", name="Dense_1")(x)
 outputs = layers.Dense(10, activation="softmax",name="output_layer")(x)      
 model = tf.keras.Model(inputs, outputs) 
 

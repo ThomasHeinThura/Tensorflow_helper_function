@@ -685,6 +685,14 @@ def show_most_wrong_data(): #for computer vision - Need to fix the function and 
     :return:
     """
 
+""" Save the model 
+model_6.save("model_6.h5")
+# Load model with custom Hub Layer (required with HDF5 format)
+loaded_model_6 = tf.keras.models.load_model("model_6.h5", 
+                                            custom_objects={"KerasLayer": hub.KerasLayer})
+"""
+
+
 """ Tensor Board dev
 # Upload TensorBoard dev records
 !tensorboard dev upload --logdir ./tensorflow_hub/ \

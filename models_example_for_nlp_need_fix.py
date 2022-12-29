@@ -222,7 +222,85 @@ model_1_history = model_1.fit(train_dataset,
 
 """
 
+""" Pretrained embeddings "Universal sentence encoder from tensorflow hub"
+# Example of pretrained embedding with universal sentence encoder - https://tfhub.dev/google/universal-sentence-encoder/4
+# Test example
+import tensorflow_hub as hub
+embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4") # load Universal Sentence Encoder
+embed_samples = embed([sample_sentence,
+                      "When you call the universal sentence encoder on a sentence, it turns it into numbers."])
 
+print(embed_samples[0][:50])
+
+OR
+
+# We can use this encoding layer in place of our text_vectorizer and embedding layer
+sentence_encoder_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
+                                        input_shape=[], # shape of inputs coming to our model 
+                                        dtype=tf.string, # data type of inputs coming to the USE layer
+                                        trainable=False, # keep the pretrained weights (we'll create a feature extractor)
+                                        name="USE") 
+
+# Create model using the Sequential API
+model_6 = tf.keras.Sequential([
+  sentence_encoder_layer, # take in sentences and then encode them into an embedding
+  layers.Dense(64, activation="relu"),
+  layers.Dense(1, activation="sigmoid")
+], name="model_6_USE")
+
+# Compile model
+model_6.compile(loss="binary_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+model_6.summary()
+
+# Train a classifier on top of pretrained embeddings
+model_6_history = model_6.fit(train_sentences,
+                              train_labels,
+                              epochs=5,
+                              validation_data=(val_sentences, val_labels),
+                              callbacks=[create_tensorboard_callback(SAVE_DIR, 
+                                                                     "tf_hub_sentence_encoder")])
+
+OR
+
+# Download pretrained TensorFlow Hub USE
+import tensorflow_hub as hub
+tf_hub_embedding_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
+                                        trainable=False,
+                                        name="universal_sentence_encoder")
+
+# Test out the embedding on a random sentence
+random_training_sentence = random.choice(train_sentences)
+print(f"Random training sentence:\n{random_training_sentence}\n")
+use_embedded_sentence = tf_hub_embedding_layer([random_training_sentence])
+print(f"Sentence after embedding:\n{use_embedded_sentence[0][:30]} (truncated output)...\n")
+print(f"Length of sentence embedding:\n{len(use_embedded_sentence[0])}")
+
+
+# Define feature extractor model using TF Hub layer
+inputs = layers.Input(shape=[], dtype=tf.string)
+pretrained_embedding = tf_hub_embedding_layer(inputs) # tokenize text and create embedding
+x = layers.Dense(128, activation="relu")(pretrained_embedding) # add a fully connected layer on top of the embedding
+# Note: you could add more layers here if you wanted to
+outputs = layers.Dense(5, activation="softmax")(x) # create the output layer
+model_2 = tf.keras.Model(inputs=inputs,
+                        outputs=outputs)
+
+# Compile the model
+model_2.compile(loss="categorical_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+# Fit feature extractor model for 3 epochs
+model_2.fit(train_dataset,
+            steps_per_epoch=int(0.1 * len(train_dataset)),
+            epochs=3,
+            validation_data=valid_dataset,
+            validation_steps=int(0.1 * len(valid_dataset)))
+
+"""
 #4.5 mixed precision training
 # Turn on mixed precision training (that is to train with faster)
 # if you need check tensorflow.keras.mixed_precision
@@ -264,5 +342,13 @@ for layer in model.layers:
 for layer in model.layers[1].layers[:20]: # only check the first 20 layers to save output space
     print(layer.name, layer.trainable, layer.dtype, layer.dtype_policy)
 
+"""
+
+""" Combine three model to predict one outcome
+# Get mean pred probs for 3 models
+baseline_pred_probs = np.max(model_0.predict_proba(val_sentences), axis=1) # get the prediction probabilities from baseline model
+combined_pred_probs = baseline_pred_probs + tf.squeeze(model_2_pred_probs, axis=1) + tf.squeeze(model_6_pred_probs)
+combined_preds = tf.round(combined_pred_probs/3) # average and round the prediction probabilities to get prediction classes
+combined_preds[:20]
 """
 

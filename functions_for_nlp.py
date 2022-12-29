@@ -192,6 +192,14 @@ train_sentences, val_sentences, train_labels, val_labels = train_test_split(trai
                                                                             test_size=0.1, # dedicate 10% of samples to validation set
                                                                             random_state=42) # random state for reproducibility
 """
+"""# One kind of correct way (there are more) to make data subset
+# (split the already split train_sentences/train_labels)
+train_sentences_90_percent, train_sentences_10_percent, train_labels_90_percent, train_labels_10_percent = train_test_split(np.array(train_sentences),
+                                                                                                                            train_labels,
+                                                                                                                            test_size=0.1,
+                                                                                                                            random_state=42)
+
+"""
 
 # 3.3 data pipe line for best performace
 """ preprocess datapipe line
@@ -537,6 +545,29 @@ def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_s
 
 # adv model and basline model or procedures
 
+""" All model results
+# Combine model results into a DataFrame
+all_model_results = pd.DataFrame({"baseline": baseline_results,
+                                  "simple_dense": model_1_results,
+                                  "lstm": model_2_results,
+                                  "gru": model_3_results,
+                                  "bidirectional": model_4_results,
+                                  "conv1d": model_5_results,
+                                  "tf_hub_sentence_encoder": model_6_results,
+                                  "tf_hub_10_percent_data": model_7_results})
+all_model_results = all_model_results.transpose()
+all_model_results
+
+# Plot and compare all of the model results
+all_model_results.plot(kind="bar", figsize=(10, 7)).legend(bbox_to_anchor=(1.0, 1.0));
+"""
+
+""" Save the model 
+model_6.save("model_6.h5")
+# Load model with custom Hub Layer (required with HDF5 format)
+loaded_model_6 = tf.keras.models.load_model("model_6.h5", 
+                                            custom_objects={"KerasLayer": hub.KerasLayer})
+"""
 
 """ Tensor Board dev
 # Upload TensorBoard dev records

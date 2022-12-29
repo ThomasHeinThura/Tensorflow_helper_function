@@ -510,7 +510,12 @@ def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_s
     if savefig:
         fig.savefig("confusion_matrix.png")
 
-
+""" Save the model 
+model_6.save("model_6.h5")
+# Load model with custom Hub Layer (required with HDF5 format)
+loaded_model_6 = tf.keras.models.load_model("model_6.h5", 
+                                            custom_objects={"KerasLayer": hub.KerasLayer})
+"""
 
 """ Tensor Board dev
 # Upload TensorBoard dev records

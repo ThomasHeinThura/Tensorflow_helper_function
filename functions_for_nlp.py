@@ -149,6 +149,87 @@ def show_methods_for_import_online():
 
   """
 
+
+""" Procedure Nlp data import from text file
+
+# Start by using the 20k dataset
+data_dir = "pubmed-rct/PubMed_20k_RCT_numbers_replaced_with_at_sign/"
+
+# Check all of the filenames in the target directory
+import os
+filenames = [data_dir + filename for filename in os.listdir(data_dir)]
+filenames
+"""
+# Create function to read the lines of a document
+def get_lines(filename):
+  """
+  Reads filename (a text file) and returns the lines of text as a list.
+  
+  Args:
+      filename: a string containing the target filepath to read.
+  
+  Returns:
+      A list of strings with one string per line from the target filename.
+      For example:
+      ["this is the first line of filename",
+       "this is the second line of filename",
+       "..."]
+  """
+  with open(filename, "r") as f:
+    return f.readlines()
+""" get_lines example
+train_lines = get_lines(data_dir+"train.txt")
+train_lines[:20] # the whole first example of an abstract + a little more of the next one
+"""
+def preprocess_text_with_line_numbers(filename):
+  """Returns a list of dictionaries of abstract line data.
+
+  Takes in filename, reads its contents and sorts through each line,
+  extracting things like the target label, the text of the sentence,
+  how many sentences are in the current abstract and what sentence number
+  the target line is.
+
+  Args:
+      filename: a string of the target text file to read and extract line data
+      from.
+
+  Returns:
+      A list of dictionaries each containing a line from an abstract,
+      the lines label, the lines position in the abstract and the total number
+      of lines in the abstract where the line is from. For example:
+
+      [{"target": 'CONCLUSION',
+        "text": The study couldn't have gone better, turns out people are kinder than you think",
+        "line_number": 8,
+        "total_lines": 8}]
+  """
+  input_lines = get_lines(filename) # get all lines from filename
+  abstract_lines = "" # create an empty abstract
+  abstract_samples = [] # create an empty list of abstracts
+  
+  # Loop through each line in target file
+  for line in input_lines:
+    if line.startswith("###"): # check to see if line is an ID line
+      abstract_id = line
+      abstract_lines = "" # reset abstract string
+    elif line.isspace(): # check to see if line is a new line
+      abstract_line_split = abstract_lines.splitlines() # split abstract into separate lines
+
+      # Iterate through each line in abstract and count them at the same time
+      for abstract_line_number, abstract_line in enumerate(abstract_line_split):
+        line_data = {} # create empty dict to store data from line
+        target_text_split = abstract_line.split("\t") # split target label from text
+        line_data["target"] = target_text_split[0] # get target label
+        line_data["text"] = target_text_split[1].lower() # get target text and lower it
+        line_data["line_number"] = abstract_line_number # what number line does the line appear in the abstract?
+        line_data["total_lines"] = len(abstract_line_split) - 1 # how many total lines are in the abstract? (start from 0)
+        abstract_samples.append(line_data) # add line data to abstract samples list
+    
+    else: # if the above conditions aren't fulfilled, the line contains a labelled sentence
+      abstract_lines += line
+  
+  return abstract_samples
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
@@ -561,6 +642,120 @@ all_model_results
 # Plot and compare all of the model results
 all_model_results.plot(kind="bar", figsize=(10, 7)).legend(bbox_to_anchor=(1.0, 1.0));
 """
+
+
+""" Most worng example
+# Create dataframe with validation sentences and best performing model predictions
+val_df = pd.DataFrame({"text": val_sentences,
+                       "target": val_labels,
+                       "pred": model_6_preds,
+                       "pred_prob": tf.squeeze(model_6_pred_probs)})
+val_df.head()
+
+# Find the wrong predictions and sort by prediction probabilities
+most_wrong = val_df[val_df["target"] != val_df["pred"]].sort_values("pred_prob", ascending=False)
+most_wrong[:10]
+
+# Check the false positives (model predicted 1 when should've been 0)
+for row in most_wrong[:10].itertuples(): # loop through the top 10 rows (change the index to view different rows)
+  _, text, target, pred, prob = row
+  print(f"Target: {target}, Pred: {int(pred)}, Prob: {prob}")
+  print(f"Text:\n{text}\n")
+  print("----\n")
+
+# Check the most wrong false negatives (model predicted 0 when should've predict 1)
+for row in most_wrong[-10:].itertuples():
+  _, text, target, pred, prob = row
+  print(f"Target: {target}, Pred: {int(pred)}, Prob: {prob}")
+  print(f"Text:\n{text}\n")
+  print("----\n")
+
+"""
+
+
+""" Making predicitons on the test dataset
+# Making predictions on the test dataset
+test_sentences = test_df["text"].to_list()
+test_samples = random.sample(test_sentences, 10)
+for test_sample in test_samples:
+  pred_prob = tf.squeeze(model_6.predict([test_sample])) # has to be list
+  pred = tf.round(pred_prob)
+  print(f"Pred: {int(pred)}, Prob: {pred_prob}")
+  print(f"Text:\n{test_sample}\n")
+  print("----\n")
+
+# Turn Tweet into string
+daniels_tweet = "Life like an ensemble: take the best choices from others and make your own"
+
+# Source - https://twitter.com/BeirutCityGuide/status/1290696551376007168
+beirut_tweet_1 = "Reports that the smoke in Beirut sky contains nitric acid, which is toxic. Please share and refrain from stepping outside unless urgent. #Lebanon"
+
+# Source - https://twitter.com/BeirutCityGuide/status/1290773498743476224
+beirut_tweet_2 = "#Beirut declared a “devastated city”, two-week state of emergency officially declared. #Lebanon"
+
+"""
+
+def predict_on_sentence(model, sentence):
+    import tensorflow as tf
+    """
+    Uses model to make a prediction on sentence.
+
+    Returns the sentence, the predicted label and the prediction probability.
+    """
+    pred_prob = model.predict([sentence])
+    pred_label = tf.squeeze(tf.round(pred_prob)).numpy()
+    print(f"Pred: {pred_label}", "(real disaster)" if pred_label > 0 else "(not real disaster)", f"Prob: {pred_prob[0][0]}")
+    print(f"Text:\n{sentence}")
+
+  
+# Calculate the time of predictions
+def show_time_taken_to_predict(model, samples):
+    import time
+    """
+    Times how long a model takes to make predictions on samples.
+  
+    Args:
+    ----
+    model = a trained model
+    sample = a list of samples
+
+    Returns:
+    ----
+    total_time = total elapsed time for model to make predictions on samples
+    time_per_pred = time in seconds per single sample
+    """
+    start_time = time.perf_counter() # get start time
+    model.predict(samples) # make predictions
+    end_time = time.perf_counter() # get finish time
+    total_time = end_time-start_time # calculate how long predictions took to make
+    time_per_pred = total_time/len(samples) # find prediction time per sample
+    return total_time, time_per_pred
+
+""" Time and preformace trade off Procedures
+# Calculate TF Hub Sentence Encoder prediction times
+model_6_total_pred_time, model_6_time_per_pred = pred_timer(model_6, val_sentences)
+model_6_total_pred_time, model_6_time_per_pred
+
+# Calculate Naive Bayes prediction times
+baseline_total_pred_time, baseline_time_per_pred = pred_timer(model_0, val_sentences)
+baseline_total_pred_time, baseline_time_per_pred
+
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(10, 7))
+plt.scatter(baseline_time_per_pred, baseline_results["f1"], label="baseline")
+plt.scatter(model_6_time_per_pred, model_6_results["f1"], label="tf_hub_sentence_encoder")
+plt.legend()
+plt.title("F1-score versus time per prediction")
+plt.xlabel("Time per prediction")
+plt.ylabel("F1-Score");
+"""
+
+
+
+
+
+
 
 """ Save the model 
 model_6.save("model_6.h5")

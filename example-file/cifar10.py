@@ -7,6 +7,8 @@ from datetime import datetime
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
+epoch = 30
+input_shape = (32, 32, 3)
 
 # import data
 (train_features,train_labels), (test_features, test_labels) = keras.datasets.cifar10.load_data()
@@ -27,18 +29,31 @@ print(
 
 # Preprocess the data
 # Turn our data into TensorFlow Datasets
-train_dataset = tf.data.Dataset.from_tensor_slices((train_features, 
-                                                train_labels)).batch(32).prefetch(tf.data.AUTOTUNE)
-valid_dataset = tf.data.Dataset.from_tensor_slices((test_features,
-                                                test_labels)).batch(32).prefetch(tf.data.AUTOTUNE)
+train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels))
+train_dataset =  train_dataset.shuffle(5000).batch(128).prefetch(tf.data.AUTOTUNE)
+valid_dataset = tf.data.Dataset.from_tensor_slices((test_features,test_labels))
+valid_dataset = valid_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
+print(f"Train : {train_dataset} \n"
+      f"Test : {valid_dataset}")
 print(f"Train : {train_dataset} \n"
       f"Test : {valid_dataset}")
 
+# Callbacks
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
+                                                  patience=15) # if val loss decreases for 3 epochs in a row, stop training
+
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
+                                                 factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
+                                                 patience=5,
+                                                 verbose=1, # print out when learning rate goes down 
+                                                 min_lr=1e-7)
+
+
 # Setup input shape and base model, freezing the base model layers
-input_shape = (32, 32, 3)
 base_model = tf.keras.applications.EfficientNetB0(include_top=False)
 base_model.trainable = False
 
+#Build the model
 inputs = layers.Input(shape=input_shape, name="input_layer")
 x = base_model(inputs, training=False) 
 x = layers.GlobalAveragePooling2D(name="global_average_pooling_layer")(x) 
@@ -54,11 +69,11 @@ model.summary()
 
 start = datetime.now()
 history_model = model.fit(train_dataset,
-                          batch_size=128,
                           steps_per_epoch=len(train_dataset),
                           validation_data=valid_dataset,
-                          validation_steps=0.1*len(valid_dataset),
-                          epochs=10) 
+                          validation_steps=int(0.1*len(valid_dataset)),
+                          callbacks=[early_stopping, reduce_lr],
+                          epochs=epoch) 
 end = datetime.now()
 
 print(f"The time taken to train the model is {end - start}")

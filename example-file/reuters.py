@@ -4,6 +4,7 @@ import numpy as np
 from tensorflow.keras import layers
 from tensorflow import keras
 from datetime import datetime
+import pandas as pd
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
@@ -19,13 +20,16 @@ print(
     f"Train_labels : {train_labels.shape} {train_labels.dtype} \n" 
     f"Test features : {test_features.shape} {test_features.dtype} \n" 
     f"Test_labels : {test_labels.shape} {test_labels.dtype} "
-    ) 
+    )
 
-# Preprocess the data
-# Turn our data into TensorFlow Datasets
-train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels))
-train_dataset =  train_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
-valid_dataset = tf.data.Dataset.from_tensor_slices((test_features,test_labels))
-valid_dataset = valid_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
-print(f"Train : {train_dataset} \n"
+
+print (train_features.item(1))
+print (tf.constant(tf.expand_dims(train_features, axis=1), dtype=tf.float32))
+
+"""
+train_dataset  _dataset} \n"
       f"Test : {valid_dataset}")
+
+"""
+
+

@@ -1,9 +1,4 @@
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import numpy as np 
-from tensorflow.keras import layers
-from tensorflow import keras
-from datetime import datetime
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
@@ -20,16 +15,3 @@ print(
     f"Test features : {test_features.shape} {test_features.dtype} \n" 
     f"Test_labels : {test_labels.shape} {test_labels.dtype} "
     ) 
-
-# Preprocess the data
-# Turn our data into TensorFlow Datasets
-train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels))
-train_dataset =  train_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
-valid_dataset = tf.data.Dataset.from_tensor_slices((test_features,test_labels))
-valid_dataset = valid_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
-print(f"Train : {train_dataset} \n"
-      f"Test : {valid_dataset}")
-
-
-
-test_split=0.2,

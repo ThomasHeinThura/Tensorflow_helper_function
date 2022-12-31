@@ -7,7 +7,7 @@ from datetime import datetime
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
-epoch = 10
+epoch = 25
 input_shape = (32, 32, 3)
 
 # import data

@@ -4,8 +4,11 @@ import numpy as np
 from tensorflow.keras import layers
 from tensorflow import keras
 from datetime import datetime
+import os
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.get_logger().setLevel('ERROR')
+tf.autograph.set_verbosity(1)
 tf.set_seed = 42
 epoch = 10
 input_shape = (32, 32, 3)
@@ -48,29 +51,29 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 #Build the model
 inputs = layers.Input(shape=input_shape, name="input_layer")
 x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu")(inputs)
-x = layers.Conv2D(32, kernel_size=3, activation="elu")(x)
+x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu")(x)
 x = layers.BatchNormalization()(x)
 x = layers.MaxPooling2D()(x)
-x = layers.Dropout(0.5)(x)
-x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(inputs)
-x = layers.Conv2D(64, kernel_size=3, activation="elu")(x)
+x = layers.Dropout(0.1)(x)
+x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(x)
+x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(x)
 x = layers.BatchNormalization()(x)
 x = layers.MaxPooling2D()(x)
-x = layers.Dropout(0.5)(x)
-x = layers.Conv2D(128, kernel_size=3, activation="elu")(x)
-x = layers.Conv2D(128, kernel_size=3, activation="elu")(x)
+x = layers.Dropout(0.25)(x)
+x = layers.Conv2D(128, kernel_size=3, padding="same" ,activation="elu")(x)
+x = layers.Conv2D(128, kernel_size=3, padding="same",activation="elu")(x)
 x = layers.BatchNormalization()(x)
 x = layers.MaxPooling2D()(x)
 x = layers.Dropout(0.5)(x)
 x = layers.Flatten()(x)
 x = layers.Dense(128, activation="elu", name="Dense_1")(x)
 x = layers.Dropout(0.5)(x)
-x = layers.Dense(128, activation="elu", name="Dense_2")(x)
+x = layers.Dense(64, activation="elu", name="Dense_2")(x)
 outputs = layers.Dense(10, activation="softmax",name="output_layer")(x)      
 model = tf.keras.Model(inputs, outputs) 
 
 model.compile(loss="categorical_crossentropy",
-              optimizer=tf.keras.optimizers.Adam(),
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.00075),
               metrics=["accuracy"])
 
 model.summary()

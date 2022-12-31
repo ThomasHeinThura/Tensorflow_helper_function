@@ -5,11 +5,13 @@ from tensorflow.keras import layers
 from tensorflow import keras
 from datetime import datetime
 import pandas as pd
+import os
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.get_logger().setLevel('ERROR')
+tf.autograph.set_verbosity(0)
 tf.set_seed = 42
 epoch = 10
-input_shape = (32, 32, 3)
 
 # import data
 (train_features,train_labels), (test_features, test_labels) = tf.keras.datasets.reuters.load_data()
@@ -22,9 +24,13 @@ print(
     f"Test_labels : {test_labels.shape} {test_labels.dtype} "
     )
 
+train_features_np = np.array(train_features)
 
-print (train_features.item(1))
-print (tf.constant(tf.expand_dims(train_features, axis=1), dtype=tf.float32))
+print(train_features_np.shape, train_features_np.dtype)
+
+train_features_tf = tf.convert_to_tensor(train_features_np)
+
+print(train_features_tf.shape)
 
 """
 train_dataset  _dataset} \n"

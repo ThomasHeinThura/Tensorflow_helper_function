@@ -1,3 +1,8 @@
+"""
+This model is basic simple model of cifar10 dataset 
+get poor performane val_accuary 63% and val_loss 1.2 and take 11min50sec
+"""
+
 import tensorflow as tf
 from tensorflow.keras import datasets, layers
 from datetime import datetime
@@ -60,7 +65,7 @@ start = datetime.now()
 print("Training model...")
 model.fit(x=train_images,
           y=train_labels,
-          epochs=25,
+          epochs=50,
           validation_data=(test_images, test_labels))
 end = datetime.now()
 print(f'The time taken to train the model is {end-start}')

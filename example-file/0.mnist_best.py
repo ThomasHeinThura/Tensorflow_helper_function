@@ -1,3 +1,8 @@
+"""
+This model take 1min5sec on mnist dataset 
+val_loss 0.0307 and val_accuracy 99%
+"""
+
 # Import all required libraries
 import numpy as np
 from tensorflow import keras

@@ -1,6 +1,6 @@
 """
-The model perform so poor but keep this file to grip the knowleages
-on building the basic model
+The model perform so poor(val_accuary 53% and val_loss 1.4 take 10min to train) but keep this file to grip 
+the knowleages on building the basic model
 """
 
 import tensorflow as tf
@@ -61,7 +61,7 @@ history_model = model.fit(train_dataset,
                           steps_per_epoch=len(train_dataset),
                           validation_data=valid_dataset,
                           validation_steps=int(0.1*len(valid_dataset)),
-                          epochs=10) 
+                          epochs=25) 
 stop = datetime.now()
 print("Time taken to execute:" + str(stop - start))
 model.evaluate(valid_dataset)

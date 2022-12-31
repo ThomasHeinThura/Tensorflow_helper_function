@@ -29,12 +29,19 @@ train_features_np = np.array(train_features)
 print(train_features_np.shape, train_features_np.dtype)
 print(len(train_features))
 
-for i in range(10):
+print(train_features[1])
+
+tensor_test = tf.cast(train_features[1], dtype=tf.float32)
+
+print(tensor_test)
+
+for i in range(5):
+    tensor_ds = []
     print(train_features[i])
-    tf_train_features = tf.reshape(i ,train_features[i])
-    print(tf_train_features)
-    #print(train_features[i].shape)
-    #print(train_features[i].dtype)
+    j = tf.cast(train_features[i],dtype=tf.float32)
+    tensor_ds.append([i,j])
+print(tensor_ds.shape)
+
 
 
 

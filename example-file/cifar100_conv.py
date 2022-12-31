@@ -6,10 +6,13 @@ from tensorflow import keras
 from sklearn.preprocessing import OneHotEncoder
 from datetime import datetime
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.get_logger().setLevel('ERROR')
+tf.autograph.set_verbosity(1)
 tf.set_seed = 42
-epoch = 100
+epoch = 25
 input_shape = (32, 32, 3)
+
 
 # import data
 (train_features, train_labels), (test_features, test_labels) = tf.keras.datasets.cifar100.load_data()
@@ -31,9 +34,9 @@ print(
 # Preprocess the data
 # Turn our data into TensorFlow Datasets
 train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels))
-train_dataset =  train_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+train_dataset =  train_dataset.shuffle(50000).batch(128).prefetch(tf.data.AUTOTUNE)
 valid_dataset = tf.data.Dataset.from_tensor_slices((test_features,test_labels))
-valid_dataset = valid_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+valid_dataset = valid_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
 print(f"Train : {train_dataset} \n"
       f"Test : {valid_dataset}")
 
@@ -51,20 +54,25 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 
 #Build the model
 inputs = layers.Input(shape=input_shape, name="input_layer")
-x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu", name="layer_1")(inputs) 
-#x = layers.Conv2D(32, kernel_size=3, activation="elu", name="layer_2")(x) 
+x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu")(inputs)
+x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu")(x)
 x = layers.BatchNormalization()(x)
 x = layers.MaxPooling2D()(x)
-x = layers.Conv2D(32, kernel_size=3, activation="elu", name="layer_3")(x) 
-#x = layers.Conv2D(32, kernel_size=3, activation="elu", name="layer_4")(x) 
-#x = layers.BatchNormalization()(x)
-#x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.1)(x)
+x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(x)
+x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(x)
+x = layers.BatchNormalization()(x)
+x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.25)(x)
+x = layers.Conv2D(128, kernel_size=3, padding="same" ,activation="elu")(x)
+x = layers.Conv2D(128, kernel_size=3, padding="same",activation="elu")(x)
+x = layers.BatchNormalization()(x)
+x = layers.MaxPooling2D()(x)
 x = layers.Dropout(0.5)(x)
-#x = layers.Conv2D(32, kernel_size=3, activation="relu", name="layer_5")(x) 
 x = layers.Flatten()(x)
 x = layers.Dense(128, activation="elu", name="Dense_1")(x)
 x = layers.Dropout(0.5)(x)
-x = layers.Dense(100, activation="elu", name="Dense_2")(x)
+x = layers.Dense(64, activation="elu", name="Dense_2")(x)
 outputs = layers.Dense(100, activation="softmax",name="output_layer")(x)      
 model = tf.keras.Model(inputs, outputs) 
 

@@ -27,10 +27,14 @@ print(
 train_features_np = np.array(train_features)
 
 print(train_features_np.shape, train_features_np.dtype)
+print(len(train_features))
 
-train_features_tf = tf.convert_to_tensor(train_features_np)
+for i in range(10):
+    print(train_features[i])
 
-print(train_features_tf.shape)
+    #print(train_features[i].shape)
+    #print(train_features[i].dtype)
+
 
 
 

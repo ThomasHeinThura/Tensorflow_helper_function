@@ -1,6 +1,6 @@
 """
-This models train cifar10 dataset in about 46min in amd ryzen3 5425U 8core. 
-get val-accuary 86% and val-loss 0.4 (can take it as success in such small models)
+This models train cifar10 dataset in about 42min in amd ryzen3 5425U 8core. 
+get val-accuary 85% and val-loss 0.448 (can take it as success in such small models)
 """
 
 import tensorflow as tf

@@ -1,3 +1,8 @@
+"""
+This is fast and high accuracy model of cifar10 which get
+val_accurary 75%(79% best model check point) and val_loss 0.6571 in 7min+
+"""
+
 # Import all required libraries
 import numpy as np
 from tensorflow import keras
@@ -40,7 +45,7 @@ model = keras.Sequential(
 )
 # Model summary and Evaluation
 model.summary()
-model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=0.00075) , metrics=["accuracy"])
 start = datetime.now()
 model.fit(x_train, 
           y_train, 

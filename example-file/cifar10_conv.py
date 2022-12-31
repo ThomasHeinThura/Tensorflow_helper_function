@@ -7,7 +7,7 @@ from datetime import datetime
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
-epoch = 25
+epoch = 10
 input_shape = (32, 32, 3)
 
 # import data
@@ -52,15 +52,20 @@ x = layers.Conv2D(32, kernel_size=3, activation="elu")(x)
 x = layers.BatchNormalization()(x)
 x = layers.MaxPooling2D()(x)
 x = layers.Dropout(0.5)(x)
-x = layers.Conv2D(32, kernel_size=3, activation="elu")(x)
-x = layers.Conv2D(32, kernel_size=3, activation="elu")(x)
+x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(inputs)
+x = layers.Conv2D(64, kernel_size=3, activation="elu")(x)
+x = layers.BatchNormalization()(x)
+x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.5)(x)
+x = layers.Conv2D(128, kernel_size=3, activation="elu")(x)
+x = layers.Conv2D(128, kernel_size=3, activation="elu")(x)
 x = layers.BatchNormalization()(x)
 x = layers.MaxPooling2D()(x)
 x = layers.Dropout(0.5)(x)
 x = layers.Flatten()(x)
 x = layers.Dense(128, activation="elu", name="Dense_1")(x)
 x = layers.Dropout(0.5)(x)
-x = layers.Dense(64, activation="elu", name="Dense_2")(x)
+x = layers.Dense(128, activation="elu", name="Dense_2")(x)
 outputs = layers.Dense(10, activation="softmax",name="output_layer")(x)      
 model = tf.keras.Model(inputs, outputs) 
 

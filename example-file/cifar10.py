@@ -7,16 +7,16 @@ from datetime import datetime
 
 tf.get_logger().setLevel('ERROR')
 tf.set_seed = 42
-epoch = 10
+epoch = 25
 input_shape = (32, 32, 3)
 
 # import data
 (train_features,train_labels), (test_features, test_labels) = keras.datasets.cifar10.load_data()
 
-train_features = tf.cast(train_features, dtype=tf.float16)
-train_labels = tf.cast(train_labels, dtype=tf.float16)
-test_features = tf.cast(test_features, dtype=tf.float16)
-test_labels = tf.cast(test_labels, dtype=tf.float16)
+train_features = tf.cast(train_features, dtype=tf.float32) / 255
+test_features = tf.cast(test_features, dtype=tf.float32) / 255
+train_labels = keras.utils.to_categorical(train_labels, num_classes=10)
+test_labels = keras.utils.to_categorical(test_labels, num_classes=10)
 
 
 # Check the data shape
@@ -40,7 +40,7 @@ print(f"Train : {train_dataset} \n"
 
 # Callbacks
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=15) # if val loss decreases for 3 epochs in a row, stop training
+                                                  patience=10) # if val loss decreases for 3 epochs in a row, stop training
 
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
@@ -57,11 +57,13 @@ base_model.trainable = False
 inputs = layers.Input(shape=input_shape, name="input_layer")
 x = base_model(inputs, training=False) 
 x = layers.GlobalAveragePooling2D(name="global_average_pooling_layer")(x) 
-x = layers.Dense(100, activation="relu", name ="hidden_layer_2")(x)
+x = layers.Dense(512, activation="relu", name ="hidden_layer_1")(x)
+x = layers.Dropout(0.25)
+x = layers.Dense(128, activation="relu", name ="hidden_layer_2")(x)
 outputs = layers.Dense(10, activation="softmax",name="output_layer")(x)      
 model = tf.keras.Model(inputs, outputs) 
 
-model.compile(loss="sparse_categorical_crossentropy",
+model.compile(loss="categorical_crossentropy",
               optimizer=tf.keras.optimizers.Adam(),
               metrics=["accuracy"])
 

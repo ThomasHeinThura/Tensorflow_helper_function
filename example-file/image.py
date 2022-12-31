@@ -1,15 +1,3 @@
-"""
-This script should train a TensorFlow model on the fashion MNIST dataset to ~90% test accuracy.
-
-It'll save the model to the current directory using the ".h5" extension.
-
-You can use it to test if your local machine is fast enough to complete the
-TensorFlow Developer Certification.
-
-If this script runs in under 5-10 minutes through PyCharm, you're good to go.
-
-The models/datasets in the exam are similar to the ones used in this script.
-"""
 import tensorflow as tf
 from tensorflow.keras import datasets, layers
 from datetime import datetime
@@ -23,12 +11,30 @@ tf.get_logger().setLevel('ERROR')
 # Get data
 (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
 
-# Normalize images (get values between 0 & 1)
-train_images, test_images = train_images / 255.0, test_images / 255.0 
+train_features = tf.cast(train_images, dtype=tf.float32) / 255
+test_features = tf.cast(test_images, dtype=tf.float32) / 255
+train_labels = tf.keras.utils.to_categorical(train_labels, num_classes=10)
+test_labels = tf.keras.utils.to_categorical(test_labels, num_classes=10)
 
-# Check shape of input data
-# print(train_images.shape)
-# print(train_labels.shape)
+
+# Check the data shape
+print(
+    f"Train_features : {train_features.shape} {train_features.dtype} \n" 
+    f"Train_labels : {train_labels.shape} {train_labels.dtype} \n" 
+    f"Test features : {test_features.shape} {test_features.dtype} \n" 
+    f"Test_labels : {test_labels.shape} {test_labels.dtype} "
+    ) 
+
+# Preprocess the data
+# Turn our data into TensorFlow Datasets
+train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels))
+train_dataset =  train_dataset.shuffle(5000).batch(128).prefetch(tf.data.AUTOTUNE)
+valid_dataset = tf.data.Dataset.from_tensor_slices((test_features,test_labels))
+valid_dataset = valid_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
+print(f"Train : {train_dataset} \n"
+      f"Test : {valid_dataset}")
+print(f"Train : {train_dataset} \n"
+      f"Test : {valid_dataset}")
 
 # Build model
 model = tf.keras.Sequential([
@@ -45,8 +51,8 @@ model = tf.keras.Sequential([
 ])
 
 # Compile model 
-model.compile(loss="sparse_categorical_crossentropy", # if labels aren't one-hot use sparse (if labels are one-hot, drop sparse)
-              optimizer=tf.keras.optimizers.Adam(),
+model.compile(loss="categorical_crossentropy", # if labels aren't one-hot use sparse (if labels are one-hot, drop sparse)
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.00075),
               metrics=["accuracy"])
 
 start = datetime.now()

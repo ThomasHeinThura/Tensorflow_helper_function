@@ -31,7 +31,8 @@ print(len(train_features))
 
 for i in range(10):
     print(train_features[i])
-
+    tf_train_features = tf.reshape(i ,train_features[i])
+    print(tf_train_features)
     #print(train_features[i].shape)
     #print(train_features[i].dtype)
 

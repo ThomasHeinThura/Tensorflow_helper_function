@@ -1,3 +1,8 @@
+"""
+This models train cifar10 dataset in about 46min in amd ryzen3 5425U 8core. 
+get val-accuary 86% and val-loss 0.4 (can take it as success in such small models)
+"""
+
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np 
@@ -10,7 +15,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(1)
 tf.set_seed = 42
-epoch = 10
+epoch = 25
 input_shape = (32, 32, 3)
 
 # import data

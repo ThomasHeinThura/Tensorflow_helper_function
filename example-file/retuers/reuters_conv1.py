@@ -78,7 +78,9 @@ embedding_layers = layers.Embedding(input_dim=max_vocab_length,
 # Build a Bidirectional RNN in TensorFlow
 inputs = layers.Input(shape=(max_vocab_length,))
 x = embedding_layers(inputs)
+x = layers.Conv1D(32, kernel_size=5, padding="same", activation="relu")(x)
 x = layers.Conv1D(64, kernel_size=5, padding="same", activation="relu")(x)
+x = layers.Conv1D(128, kernel_size=5, padding="same", activation="relu")(x)
 x = layers.GlobalAveragePooling1D()(x) # condense the output of our feature vector
 outputs = layers.Dense(46, activation="softmax")(x)
 model= tf.keras.Model(inputs, outputs, name="model_4_Bidirectional")

@@ -33,16 +33,17 @@ hub_layer = hub.KerasLayer(embedding, input_shape=[],
 
 model = tf.keras.Sequential()
 model.add(hub_layer)
-model.add(tf.keras.layers.Dense(16, activation='relu'))
+model.add(tf.keras.layers.Dense(32, activation='relu'))
+model.add(tf.keras.layers.Dense(32, activation='relu'))
 model.add(tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid))
 
 model.summary()
-model.compile(optimizer='adam',
-              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.00075),
+              loss=tf.keras.losses.BinaryCrossentropy(),
               metrics=['accuracy'])
 
 start = datetime.now()
-history = model.fit(train_data.shuffle(10000).batch(512),
+history = model.fit(train_data.shuffle(10000).batch(512).cache().prefetch(tf.data.AUTOTUNE),
                     epochs=epoch,
                     validation_data=validation_data.batch(512),
                     verbose=1)

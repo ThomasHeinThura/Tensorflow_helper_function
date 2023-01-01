@@ -1,8 +1,8 @@
 """
 The base model performance 
 val_accuary : 85% in 10 epochs
-val_loss : 0.3571
-time : 2min14sec
+val_loss : 0.4896
+time : 2min10sec
 """
 import os
 import numpy as np
@@ -33,7 +33,9 @@ hub_layer = hub.KerasLayer(embedding, input_shape=[],
 
 model = tf.keras.Sequential()
 model.add(hub_layer)
-model.add(tf.keras.layers.Dense(16, activation='relu'))
+model.add(tf.keras.layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),)
+model.add(tf.keras.layers.Conv1D(64,5,activation='relu'))
+model.add(tf.keras.layers.Flatten())
 model.add(tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid))
 
 model.summary()
@@ -41,11 +43,13 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
+
 start = datetime.now()
 history = model.fit(train_data.shuffle(10000).batch(512),
                     epochs=epoch,
                     validation_data=validation_data.batch(512),
                     verbose=1)
+
 end = datetime.now()
 
 print(f"The time taken to train the model is :{end - start}")

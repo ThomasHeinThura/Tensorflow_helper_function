@@ -19,7 +19,6 @@ print("GPU is", "available" if tf.config.list_physical_devices("GPU") else "NOT 
 tf.set_seed = 42
 epoch = 10
 
-
 # Split the training set into 60% and 40% to end up with 15,000 examples
 # for training, 10,000 examples for validation and 25,000 examples for testing.
 train_data, validation_data, test_data = tfds.load(
@@ -34,12 +33,12 @@ hub_layer = hub.KerasLayer(embedding, input_shape=[],
 model = tf.keras.Sequential()
 model.add(hub_layer)
 model.add(tf.keras.layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),)
-model.add(tf.keras.layers.LSTM(64,))
-model.add(tf.keras.layers.Dense(10))
+model.add(tf.keras.layers.LSTM(32,))
+#model.add(tf.keras.layers.Dense(10))
 model.add(tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid))
 
 model.summary()
-model.compile(optimizer='adam',
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0008),
               loss=tf.keras.losses.BinaryCrossentropy(),
               metrics=['accuracy'])
 
@@ -53,7 +52,4 @@ history = model.fit(train_data.shuffle(10000).batch(512),
 end = datetime.now()
 
 print(f"The time taken to train the model is :{end - start}")
-results = model.evaluate(test_data.batch(512), verbose=2)
-
-for name, value in zip(model.metrics_names, results):
-  print("%s: %.3f" % (name, value))
+results = model.evaluate(test_data.batch(512))

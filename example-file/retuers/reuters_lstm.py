@@ -13,7 +13,7 @@ tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(0)
 tf.set_seed = 42
 epoch = 10
-max_vocab_length = 10000 # max number of words to have in our vocabulary
+max_vocab_length = 5000 # max number of words to have in our vocabulary
 max_length = 100
 
 # import data
@@ -78,8 +78,9 @@ embedding_layers = layers.Embedding(input_dim=max_vocab_length,
 # Build a Bidirectional RNN in TensorFlow
 inputs = layers.Input(shape=(max_vocab_length,))
 x = embedding_layers(inputs)
-x = layers.Bidirectional(layers.LSTM(64, return_sequences=True))(x) # stacking RNN layers requires return_sequences=True
-x = layers.Bidirectional(layers.LSTM(64))(x) # bidirectional goes both ways so has double the parameters of a regular LSTM layer
+x = layers.GRU(64, return_sequences=True)(x) # stacking recurrent cells requires return_sequences=True
+x = layers.GRU(64)(x) 
+x = layers.Dense(64, activation="relu")(x) # optional dense layer after GRU cell
 outputs = layers.Dense(46, activation="sigmoid")(x)
 model= tf.keras.Model(inputs, outputs, name="model_4_Bidirectional")
 

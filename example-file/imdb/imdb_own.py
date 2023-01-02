@@ -36,7 +36,7 @@ def get_features_from_tfdataset(tfdataset, batched=False):
     features = list(map(lambda x: x[0], tfdataset)) # Get labels 
 
     if not batched:
-        return tf.concat(features, axis=0) # concat the list of batched labels
+        return tf.stack(features, axis=0) # concat the list of batched labels
 
     return features
 
@@ -45,7 +45,7 @@ def get_labels_from_tfdataset(tfdataset, batched=False):
     labels = list(map(lambda x: x[1], tfdataset)) # Get labels 
 
     if not batched:
-        return tf.concat(labels, axis=0) # concat the list of batched labels
+        return tf.stack(labels, axis=0) # concat the list of batched labels
 
     return labels
 

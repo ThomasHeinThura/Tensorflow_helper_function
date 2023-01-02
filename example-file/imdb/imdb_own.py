@@ -31,6 +31,53 @@ train_data, validation_data, test_data = tfds.load(
     split=('train[:60%]', 'train[60%:]', 'test'),
     as_supervised=True)
 
+def get_features_from_tfdataset(tfdataset, batched=False):
+
+    features = list(map(lambda x: x[0], tfdataset)) # Get labels 
+
+    if not batched:
+        return tf.concat(features, axis=0) # concat the list of batched labels
+
+    return features
+
+def get_labels_from_tfdataset(tfdataset, batched=False):
+
+    labels = list(map(lambda x: x[1], tfdataset)) # Get labels 
+
+    if not batched:
+        return tf.concat(labels, axis=0) # concat the list of batched labels
+
+    return labels
+
+
+labels = get_labels_from_tfdataset(train_data)
+features = get_features_from_tfdataset(train_data)
+valid_features = get_features_from_tfdataset(validation_data)
+valid_labels = get_labels_from_tfdataset(validation_data)
+print(valid_features.shape, valid_labels.shape)
+
+
+max_vocab = 5000  # Maximum vocab size.
+max_seq_len = 600  # Sequence length to pad the outputs to.
+
+# Create the layer.
+vectorize_layer = tf.keras.layers.TextVectorization(
+    max_tokens=max_vocab,
+    output_mode='int',
+    output_sequence_length=max_seq_len)
+
+# Now that the vocab layer has been created, call `adapt` on the
+# text-only dataset to create the vocabulary. You don't have to batch,
+# but for large datasets this means we're not keeping spare copies of
+# the dataset.
+vectorize_layer.adapt(features)
+
+embedding_layers = layers.Embedding(input_dim=max_vocab,
+                                     output_dim=5,
+                                     embeddings_initializer="uniform",
+                                     input_length = max_seq_len,
+                                     name="embedding_layers")
+
 # Callbacks
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
                                                   patience=5) # if val loss decreases for 3 epochs in a row, stop training
@@ -41,23 +88,8 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
 
-#Tokenization and embedding layers
-# Set random seed and create embedding layer (new embedding layer for each model)
-text_vectorizer = TextVectorization(max_tokens=max_vocab_length,
-                                    output_mode="int",
-                                    output_sequence_length=max_length)
-embedding_layers = layers.Embedding(input_dim=max_vocab_length,
-                                     output_dim=5,
-                                     embeddings_initializer="uniform",
-                                     input_length = max_length,
-                                     name="embedding_layers")
-
-embedding = "https://tfhub.dev/google/nnlm-en-dim50/2"
-hub_layer = hub.KerasLayer(embedding, input_shape=[], 
-                           dtype=tf.string, trainable=True)
-
 model = tf.keras.Sequential()
-model.add(text_vectorizer)
+model.add(vectorize_layer)
 model.add(embedding_layers)
 #model.add(tf.keras.layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),)
 model.add(tf.keras.layers.LSTM(8,))
@@ -79,3 +111,33 @@ end = datetime.now()
 
 print(f"The time taken to train the model is :{end - start}")
 results = model.evaluate(test_data.batch(512))
+
+def calculate_accuracy_results(y_true, y_pred):
+    from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+    """
+     Calculates model accuracy, precision, recall and f1 score of a binary classification model.
+
+    Args:
+        y_true: true labels in the form of a 1D array
+        y_pred: predicted labels in the form of a 1D array
+
+    Returns a dictionary of accuracy, precision, recall, f1-score.
+    """
+    # Calculate model accuracy
+    model_accuracy = accuracy_score(y_true, y_pred) * 100
+    # Calculate model precision, recall and f1 score using "weighted average
+    model_precision, model_recall, model_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="weighted", zero_division= 1)
+    model_results = {"accuracy": model_accuracy,
+                      "precision": model_precision,
+                      "recall": model_recall,
+                      "f1": model_f1}
+    return model_results
+
+result_preds_probs = model.predict(valid_features)
+result_preds = tf.argmax(result_preds_probs, axis=1)
+
+results = calculate_accuracy_results( 
+    y_true= valid_labels,
+    y_pred = result_preds)
+
+print(results)

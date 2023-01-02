@@ -3,7 +3,7 @@ The model performance :
 val_accuary : 86%
 val_loss : 0.4491
 time : 53min
-epoch : 25 (get val_accuary 81% on 10 epoch and loss is 0.52 time is )
+epoch : 25 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
 """
 
 import tensorflow as tf
@@ -18,7 +18,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(1)
 tf.set_seed = 42
-epoch = 10
+epoch = 25
 input_shape = (32, 32, 3)
 
 # import data

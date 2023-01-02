@@ -1,8 +1,9 @@
 """
-The base model performance 
+The model performance : prediction overfit? or false valid data?
 val_accuary : 86% in 10 epochs
 val_loss : 0.3260
 time : 2min05sec
+f1 : 0.332(val-accuary : 49.9)
 """
 import os
 import numpy as np

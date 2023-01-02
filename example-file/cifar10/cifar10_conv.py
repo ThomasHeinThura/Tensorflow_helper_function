@@ -3,7 +3,7 @@ The model performace:
 val_accurary : 
 val_loss :
 time : 
-epoch : 
+epoch : 10
 """
 
 import tensorflow as tf
@@ -68,7 +68,7 @@ start = datetime.now()
 print("Training model...")
 model.fit(x=train_images,
           y=train_labels,
-          epochs=50,
+          epochs=25,
           validation_data=(test_images, test_labels))
 end = datetime.now()
 print(f'The time taken to train the model is {end-start}')

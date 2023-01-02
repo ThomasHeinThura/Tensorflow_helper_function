@@ -1,9 +1,9 @@
 """
-The model performance : 
-val_accuary : 
-val_loss : 
-time : 
-epoch : 
+The model performance : overfit
+val_accuary : 53.28%
+val_loss :  1.437
+time : 11min6sec
+epoch : 25
 """
 
 import tensorflow as tf
@@ -45,9 +45,12 @@ print(f"Train : {train_dataset} \n"
 
 model = keras.Sequential([
     keras.layers.Input(shape=input_shape, name="input_layer"),
+    keras.layers.BatchNormalization(),
     keras.layers.Flatten(),
     keras.layers.Dense(3000, activation='relu'),
+    keras.layers.Dropout(0.25),
     keras.layers.Dense(1000, activation='relu'),
+    keras.layers.Dropout(0.5),
     keras.layers.Dense(100, activation='relu'),
     keras.layers.Dense(10, activation='softmax')
 ])
@@ -55,7 +58,7 @@ model = keras.Sequential([
 # Model summary and Evaluation
 model.summary()
 model.compile(loss="categorical_crossentropy", 
-              optimizer=tf.keras.optimizers.Adam(learning_rate= 0.00075), 
+              optimizer=tf.keras.optimizers.Adam(learning_rate= 0.001), 
               metrics=["accuracy"])
 
 # Training

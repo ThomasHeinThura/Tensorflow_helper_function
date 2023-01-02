@@ -1,7 +1,7 @@
 """
 The base model performance 
-val_accuary : 82% in 10 epochs
-val_loss : 1.11
+val_accuary : 83% in 10 epochs
+val_loss : 1.11 ---> 0.4932
 time : 2min28sec
 """
 import os
@@ -33,8 +33,7 @@ hub_layer = hub.KerasLayer(embedding, input_shape=[],
 model = tf.keras.Sequential()
 model.add(hub_layer)
 model.add(tf.keras.layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),)
-model.add(tf.keras.layers.LSTM(32,))
-#model.add(tf.keras.layers.Dense(10))
+model.add(tf.keras.layers.LSTM(8,))
 model.add(tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid))
 
 model.summary()

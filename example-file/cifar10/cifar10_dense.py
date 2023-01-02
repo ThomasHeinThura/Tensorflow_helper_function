@@ -1,8 +1,8 @@
 """
 The model performance : overfit
-val_accuary : 53.28%
-val_loss :  1.437
-time : 11min6sec
+val_accuary : 53.28% -> 56%
+val_loss :  1.437 -> 1.515
+time : 11min6sec -> 17min27sec
 epoch : 25
 """
 

@@ -8,7 +8,6 @@ These are models that train on the cifar10 dataset.
 |cifar10_another_best    | 78%           |0.6680         |11min10sec |50(37-early)   |
 |cifar10_dense           | 56%           |1.515          |17min27sec |25             |
 |cifar10_conv            | 63% (f1:10%)  |1.1963         |6min52sec  |25             |
-|------------------------|---------------|---------------|-----------|---------------|
 
 Short Note from testing and building model
 1. val_accuary is just a number that looks great to confirm these numbers are accurate then first look at val_loss values if val_loss is over 1 or 0.8 that means the Model is likely to overfit. your prediction values are likely to get lower values. 

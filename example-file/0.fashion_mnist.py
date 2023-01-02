@@ -1,20 +1,14 @@
 """
-This script should train a TensorFlow model on the fashion MNIST dataset to ~90% test accuracy.
-
-It'll save the model to the current directory using the ".h5" extension.
-
-You can use it to test if your local machine is fast enough to complete the
-TensorFlow Developer Certification.
-
-If this script runs in under 5-10 minutes through PyCharm, you're good to go.
-
-The models/datasets in the exam are similar to the ones used in this script.
+The model performance
+val_accurary : 90.21%
+val_loss : 0.27
+time : 2min29sec
 """
 import tensorflow as tf
 from tensorflow.keras import datasets, layers
 from datetime import datetime
 
-# Check version of TensorFlow (exam requires a certain version)
+# Check version of Tens80orFlow (exam requires a certain version)
 # See for version: https://www.tensorflow.org/extras/cert/Setting_Up_TF_Developer_Certificate_Exam.pdf 
 print(tf.__version__)
 tf.get_logger().setLevel('ERROR')
@@ -61,3 +55,31 @@ model.evaluate(test_images, test_labels)
 
 # Save model to current working directory
 #model.save("test_image_model.h5")
+def calculate_accuracy_results(y_true, y_pred):
+    from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+    """
+     Calculates model accuracy, precision, recall and f1 score of a binary classification model.
+
+    Args:
+        y_true: true labels in the form of a 1D array
+        y_pred: predicted labels in the form of a 1D array
+
+    Returns a dictionary of accuracy, precision, recall, f1-score.
+    """
+    # Calculate model accuracy
+    model_accuracy = accuracy_score(y_true, y_pred) * 100
+    # Calculate model precision, recall and f1 score using "weighted average
+    model_precision, model_recall, model_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="weighted", zero_division= 1)
+    model_results = {"accuracy": model_accuracy,
+                      "precision": model_precision,
+                      "recall": model_recall,
+                      "f1": model_f1}
+    return model_results
+
+model_preds_probs = model.predict(test_images)
+model_preds = tf.argmax(model_preds_probs, axis=1)
+
+model_result = calculate_accuracy_results(y_pred=model_preds,
+                                           y_true=test_labels)
+
+print(model_result)

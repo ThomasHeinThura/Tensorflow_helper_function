@@ -58,3 +58,32 @@ stop = datetime.now()
 print("Time taken to execute:" + str(stop - start))
 
 model.evaluate(x_test, y_test)
+
+
+def calculate_accuracy_results(y_true, y_pred):
+    from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+    """
+     Calculates model accuracy, precision, recall and f1 score of a binary classification model.
+
+    Args:
+        y_true: true labels in the form of a 1D array
+        y_pred: predicted labels in the form of a 1D array
+
+    Returns a dictionary of accuracy, precision, recall, f1-score.
+    """
+    # Calculate model accuracy
+    model_accuracy = accuracy_score(y_true, y_pred) * 100
+    # Calculate model precision, recall and f1 score using "weighted average
+    model_precision, model_recall, model_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="weighted", zero_division= 1)
+    model_results = {"accuracy": model_accuracy,
+                      "precision": model_precision,
+                      "recall": model_recall,
+                      "f1": model_f1}
+    return model_results
+
+model_preds_probs = model.predict(x_test)
+model_preds = tf.argmax(model_preds_probs, axis=1)
+
+model_result = calculate_accuracy_results(y_pred=model_preds,
+                                           y_true=y_test)
+print(model_result)

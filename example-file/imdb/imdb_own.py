@@ -15,7 +15,7 @@ from tensorflow.keras.layers import TextVectorization
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.get_logger().setLevel('ERROR')
-tf.autograph.set_verbos
+tf.autograph.set_verbosity(1)
 print("Version: ", tf.__version__)
 print("Eager mode: ", tf.executing_eagerly())
 print("Hub version: ", hub.__version__)

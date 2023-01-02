@@ -2,7 +2,7 @@ These are models that train on the IMDB_review dataset.
 
 
 |models                   |val_accuary    |val_loss       |time       |epochs         |
-|---------------------- --|---------------|---------------|-----------|---------------|
+|-------------------------|---------------|---------------|-----------|---------------|
 |imdb_hub_conv            | 87.22%        |0.3542         |2min54sec  |10             |
 |imdb_hub_dense           | 87.02%        |0.3323         |2min32sec  |10             |
 |imdb_USE                 | 85%           |0.3274         |3min38sec  |10             |

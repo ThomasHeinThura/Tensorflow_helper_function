@@ -3,7 +3,7 @@ The model performance :
 val_accuary : 
 val_loss : 
 time : 
-epoch :
+epoch : 25
 """
 
 import tensorflow as tf

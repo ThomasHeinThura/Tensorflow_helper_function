@@ -1,6 +1,9 @@
 """
-This model is fit with Nvidia 3060 on cifar10 dataset and get
-val_accuary = 89%(90% on best model) and val_loss=0.4540 and take 32min
+The model performace with Nvidia 3060 :
+val_accuary : 89.41% , f1 : 89.41%
+val_loss : 0.4762
+time : 36min14sec
+epoch 50(41-early stop)
 """
 import tensorflow as tf
 import matplotlib.pyplot as plt

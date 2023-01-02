@@ -27,6 +27,29 @@ train_data, validation_data, test_data = tfds.load(
     split=('train[:60%]', 'train[60%:]', 'test'),
     as_supervised=True)
 
+# Data preparation 
+
+def get_features_from_tfdataset(tfdataset, batched=False):
+
+    features = list(map(lambda x: x[0], tfdataset)) # Get labels 
+
+    if not batched:
+        return tf.concat(features, axis=0) # concat the list of batched labels
+
+    return features
+
+def get_labels_from_tfdataset(tfdataset, batched=False):
+
+    labels = list(map(lambda x: x[1], tfdataset)) # Get labels 
+
+    if not batched:
+        return tf.concat(labels, axis=0) # concat the list of batched labels
+
+    return labels
+
+valid_sentence = get_features_from_tfdataset(validation_data)
+valid_labels = get_labels_from_tfdataset(validation_data)
+
 embedding = "https://tfhub.dev/google/nnlm-en-dim50/2"
 hub_layer = hub.KerasLayer(embedding, input_shape=[], 
                            dtype=tf.string, trainable=True)
@@ -75,9 +98,9 @@ def calculate_accuracy_results(y_true, y_pred):
                       "f1": model_f1}
     return model_results
 
-model_preds_probs = model.predict(test_features)
+model_preds_probs = model.predict(valid_sentence)
 model_preds = tf.argmax(model_preds_probs, axis=1)
 
 model_result = calculate_accuracy_results(y_pred=model_preds,
-                                           y_true=test_labels)
+                                           y_true=valid_labels)
 print(model_result)

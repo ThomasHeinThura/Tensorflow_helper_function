@@ -1,6 +1,6 @@
 """
 The model performance : overfit
-val_accuary : 53.28% -> 56%
+val_accuary : 53.28% -> 56%(when add dropout layers)
 val_loss :  1.437 -> 1.515
 time : 11min6sec -> 17min27sec
 epoch : 25

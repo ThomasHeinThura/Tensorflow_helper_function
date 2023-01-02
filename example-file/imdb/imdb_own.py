@@ -88,15 +88,21 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
 
-model = tf.keras.Sequential()
-model.add(vectorize_layer)
-model.add(embedding_layers)
-#model.add(tf.keras.layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),)
-model.add(tf.keras.layers.LSTM(8,))
-model.add(tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid))
+inputs = layers.Input(shape=(1,), dtype="string")
+x = vectorize_layer(inputs)
+x = embedding_layers(x)
+#x = layers.LSTM(64, return_sequences=True)(x) # return vector for each word in the Tweet (you can stack RNN cells as long as return_sequences=True)
+#x = layers.LSTM(64)(x) # return vector for whole sequence
+# x = layers.Dense(64, activation="relu")(x) # optional dense layer on top of output of LSTM cell
+x = layers.Conv1D(64, 5, padding = 'same', activation = 'relu')(x)
+x = layers.Conv1D(64, 5, padding = 'same', activation = 'relu')(x)
+x = layers.GlobalMaxPool1D()(x)
+x = layers.Dense(10, activation='relu')(x)
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model = tf.keras.Model(inputs, outputs, name="LSTM")
 
 model.summary()
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0008),
+model.compile(optimizer=tf.keras.optimizers.Adam(),
               loss=tf.keras.losses.BinaryCrossentropy(),
               metrics=['accuracy'])
 

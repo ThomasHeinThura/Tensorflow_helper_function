@@ -1,9 +1,9 @@
 """
-The model performace:
-val_accurary : 
-val_loss :
-time : 
-epoch : 10
+The model performace: overfit
+val_accurary : 63%(10% on predict score) too bad than cifar10_dense model
+val_loss : 1.1963
+time : 6min52sec
+epoch : 25
 """
 
 import tensorflow as tf

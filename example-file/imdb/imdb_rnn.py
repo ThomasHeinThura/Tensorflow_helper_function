@@ -1,9 +1,9 @@
 """
-The model performance 
+The model performance  : I am sure something isn't right
 val_accuary : 83% in 10 epochs
 val_loss : 1.11 ---> 0.4932
 time : 2min28sec
-f1 :
+f1 : 0.3322 (val_accuary : 49.9)
 """
 import os
 import numpy as np

@@ -1,6 +1,9 @@
 """
-The model perform so poor(val_accuary 53% and val_loss 1.4 take 10min to train) but keep this file to grip 
-the knowleages on building the basic model
+The model performance : 
+val_accuary : 
+val_loss : 
+time : 
+epoch : 
 """
 
 import tensorflow as tf
@@ -88,7 +91,7 @@ def calculate_accuracy_results(y_true, y_pred):
 
 model_preds_probs = model.predict(test_features)
 model_preds = tf.argmax(model_preds_probs, axis=1)
-
+test_labels_encode = tf.argmax(test_labels,axis=1)
 model_result = calculate_accuracy_results(y_pred=model_preds,
-                                           y_true=test_labels)
+                                           y_true=test_labels_encode)
 print(model_result)

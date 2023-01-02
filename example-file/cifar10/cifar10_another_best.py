@@ -1,6 +1,9 @@
 """
-This is fast and high accuracy model of cifar10 which get
-val_accurary 75%(79% best model check point) and val_loss 0.6571 in 7min+
+The model performace:
+val_accurary : 78.18
+val_loss : 0.668
+time :  11min10secs
+epoch : 50 (37-early stop)
 """
 
 # Import all required libraries
@@ -83,7 +86,7 @@ def calculate_accuracy_results(y_true, y_pred):
 
 model_preds_probs = model.predict(x_test)
 model_preds = tf.argmax(model_preds_probs, axis=1)
-
+y_test_encode = tf.argmax(y_test,axis=1)
 model_result = calculate_accuracy_results(y_pred=model_preds,
-                                           y_true=y_test)
+                                           y_true=y_test_encode)
 print(model_result)

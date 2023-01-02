@@ -1,6 +1,8 @@
 """
-This model take 1min5sec on mnist dataset 
-val_loss 0.0307 and val_accuracy 99%
+The model performace
+val_accuary = 99.14%
+val_loss = 0.0245
+time = 1:10
 """
 
 # Import all required libraries
@@ -40,6 +42,7 @@ model.fit(x_train, y_train, batch_size=128, epochs=5, validation_split=0.1)
 stop = datetime.now()
 print("Time taken to execute:" + str(stop - start))
 
+model.evaluate(x_test, y_test)
 
 def calculate_accuracy_results(y_true, y_pred):
     from sklearn.metrics import accuracy_score, precision_recall_fscore_support

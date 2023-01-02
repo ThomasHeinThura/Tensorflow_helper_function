@@ -1,6 +1,9 @@
 """
-This models train cifar10 dataset in about 42min in amd ryzen3 5425U 8core. 
-get val-accuary 85% and val-loss 0.448 (can take it as success in such small models)
+The model performance : 
+val_accuary : 
+val_loss : 
+time : 
+epoch :
 """
 
 import tensorflow as tf
@@ -119,7 +122,7 @@ def calculate_accuracy_results(y_true, y_pred):
 
 model_preds_probs = model.predict(test_features)
 model_preds = tf.argmax(model_preds_probs, axis=1)
-
+test_labels_encode = tf.argmax(test_labels,axis=1)
 model_result = calculate_accuracy_results(y_pred=model_preds,
-                                           y_true=test_labels)
+                                           y_true=test_labels_encode)
 print(model_result)

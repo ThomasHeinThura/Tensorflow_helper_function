@@ -1,8 +1,8 @@
 """
 The model performace : I cheat alot in this dataset
 val_accuracy : 81% 
-val_loss : 0.8064
-Time : 30sec
+val_loss : 0.9033
+Time : 3min20sec
 """
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
@@ -17,9 +17,11 @@ import pandas as pd
 
 from datetime import datetime
 
-tf.random.set_seed(125)
+
 tf.get_logger().setLevel('ERROR')
 #tf.autograph.set_verbosity(1)
+tf.set_seed = 42
+epoch = 10
 max_vocab_length = 10000 # max number of words to have in our vocabulary
 #max_length = 100
 
@@ -59,7 +61,7 @@ print("one_hot_train_labels ", one_hot_train_labels.shape)
 print("one_hot_test_labels ", one_hot_test_labels.shape)
 
 train_dataset = tf.data.Dataset.from_tensor_slices((train_features_tf, one_hot_train_labels))
-train_dataset =  train_dataset.batch(32).cache().prefetch(tf.data.AUTOTUNE)
+train_dataset =  train_dataset.shuffle(8982).batch(32).cache().prefetch(tf.data.AUTOTUNE)
 valid_dataset = tf.data.Dataset.from_tensor_slices((test_features_tf,one_hot_test_labels))
 valid_dataset = valid_dataset.batch(32).cache().prefetch(tf.data.AUTOTUNE)
 print(f"Train : {train_dataset} \n"
@@ -81,6 +83,7 @@ embedding_layers = tf.keras.layers.Embedding(input_dim=max_vocab_length,
 
 inputs = layers.Input(shape=(max_vocab_length,))
 x = embedding_layers(inputs)
+x = layers.Conv1D(16,5, padding='same', activation='elu')(x)
 x = layers.Flatten()(x)
 x = layers.Dropout(0.6)(x)
 x = tf.keras.layers.Dense(60, activation='elu')(x)

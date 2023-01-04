@@ -1,10 +1,11 @@
 """
-The model performance :
-val_accuary : 86.11%
-val_loss : 0.3410
-time : 1min40sec
-f1 : 0.8611
-epoch : 10
+The model performance : This model is so hard to train even with my Nvidia 3060
+(Feature Extection performance is not looked good)
+val_accuary : 50%
+val_loss : 0.6962
+time : 14min09sec
+f1 : 0.344
+epoch : 5
 """
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'

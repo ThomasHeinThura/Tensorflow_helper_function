@@ -27,6 +27,7 @@ model = tf.keras.Sequential([
     # Reshape inputs to be compatible with Conv2D layer
   tf.keras.layers.Flatten(),
   tf.keras.layers.Dense(256, activation='relu'),
+  tf.keras.layers.Dropout(0.5),
   tf.keras.layers.Dense(10, activation=tf.nn.softmax)
 ])
 

@@ -1,8 +1,8 @@
 """
 The model performance
-val_accurary : 90.21%
-val_loss : 0.27
-time : 2min29sec
+val_accurary : 88%
+val_loss : 0.345
+time : 1min07sec
 """
 import tensorflow as tf
 from tensorflow.keras import datasets, layers
@@ -26,13 +26,13 @@ train_images, test_images = train_images / 255.0, test_images / 255.0
 model = tf.keras.Sequential([
     # Reshape inputs to be compatible with Conv2D layer
   tf.keras.layers.Flatten(),
-  tf.keras.layers.Dense(512, activation=tf.nn.relu),
+  tf.keras.layers.Dense(256, activation='relu'),
   tf.keras.layers.Dense(10, activation=tf.nn.softmax)
 ])
 
 # Compile model 
 model.compile(loss="sparse_categorical_crossentropy", # if labels aren't one-hot use sparse (if labels are one-hot, drop sparse)
-              optimizer=tf.keras.optimizers.Adam(),
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.00075),
               metrics=["accuracy"])
 
 start = datetime.now()

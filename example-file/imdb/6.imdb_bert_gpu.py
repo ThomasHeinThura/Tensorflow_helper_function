@@ -32,23 +32,34 @@ tf.random.set_seed(125)
 train_data, validation_data, test_data = tfds.load(
     name="imdb_reviews", 
     split=('train[:60%]', 'train[60%:]', 'test'),
-    batch_size= -1,
     as_supervised=True)
 
-train_sentences, train_labels = train_data
-valid_sentences, valid_labels = validation_data
-test_sentences, test_labels = test_data
+# Data preparation 
 
-print(f"Train Features: {train_sentences.shape} , Labels: {train_labels.shape}")
-print(f"Valid Features: {valid_sentences.shape} , Labels: {valid_labels.shape}")
-print(f"Test Features: {test_sentences.shape} , Labels: {test_labels.shape}")
+def get_features_from_tfdataset(tfdataset, batched=False):
 
-train_dataset = tf.data.Dataset.from_tensor_slices((train_sentences, train_labels))
-train_dataset =  train_dataset.shuffle(15000).batch(128).prefetch(tf.data.AUTOTUNE)
-valid_dataset = tf.data.Dataset.from_tensor_slices((valid_sentences,valid_labels))
-valid_dataset = valid_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
-test_dataset = tf.data.Dataset.from_tensor_slices((test_sentences,test_labels))
-test_dataset = test_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
+    features = list(map(lambda x: x[0], tfdataset)) # Get labels 
+
+    if not batched:
+        return tf.stack(features, axis=0) # concat the list of batched labels
+
+    return features
+
+def get_labels_from_tfdataset(tfdataset, batched=False):
+
+    labels = list(map(lambda x: x[1], tfdataset)) # Get labels 
+
+    if not batched:
+        return tf.stack(labels, axis=0) # concat the list of batched labels
+
+    return labels
+
+valid_sentences = get_features_from_tfdataset(validation_data)
+valid_labels = get_labels_from_tfdataset(validation_data)
+
+train_dataset =  train_data.shuffle(15000).batch(128).prefetch(tf.data.AUTOTUNE)
+valid_dataset = validation_data.batch(128).prefetch(tf.data.AUTOTUNE)
+test_dataset = test_data.batch(128).prefetch(tf.data.AUTOTUNE)
 
 # Create BERT 
 BERT_MODEL = "https://tfhub.dev/google/experts/bert/wiki_books/2" # @param {type: "string"} ["https://tfhub.dev/google/experts/bert/wiki_books/2", "https://tfhub.dev/google/experts/bert/wiki_books/mnli/2", "https://tfhub.dev/google/experts/bert/wiki_books/qnli/2", "https://tfhub.dev/google/experts/bert/wiki_books/qqp/2", "https://tfhub.dev/google/experts/bert/wiki_books/squad2/2", "https://tfhub.dev/google/experts/bert/wiki_books/sst2/2",  "https://tfhub.dev/google/experts/bert/pubmed/2", "https://tfhub.dev/google/experts/bert/pubmed/squad2/2"]

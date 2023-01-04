@@ -1,3 +1,12 @@
+"""
+The model performace : I cheat alot in this dataset
+val_accuracy : 81% 
+val_loss : 0.8064
+Time : 30sec
+"""
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np 
@@ -5,16 +14,16 @@ from tensorflow.keras import layers
 from tensorflow import keras
 from datetime import datetime
 import pandas as pd
-import os
+
 from datetime import datetime
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 tf.get_logger().setLevel('ERROR')
-tf.autograph.set_verbosity(0)
+#tf.autograph.set_verbosity(1)
 tf.set_seed = 42
 epoch = 10
 max_vocab_length = 10000 # max number of words to have in our vocabulary
-max_length = 100
+#max_length = 100
 
 # import data
 (train_features,train_labels), (test_features, test_labels) = tf.keras.datasets.reuters.load_data(num_words=max_vocab_length)
@@ -60,41 +69,36 @@ print(f"Train : {train_dataset} \n"
 
 # Callbacks
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=5) # if val loss decreases for 3 epochs in a row, stop training
+                                                  patience=2) # if val loss decreases for 3 epochs in a row, stop training
 
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
-                                                 patience=3,
+                                                 patience=1,
                                                  verbose=1, # print out when learning rate goes down 
-                                                 min_lr=1e-7)
+                                                 min_lr=1e-6)
 
-# Set random seed and create embedding layer (new embedding layer for each model)
-embedding_layers = layers.Embedding(input_dim=max_vocab_length,
-                                     output_dim=5,
-                                     embeddings_initializer="uniform",
-                                     input_length = max_length,
+embedding_layers = tf.keras.layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=2,
                                      name="embedding_layers")
 
-# Build a Bidirectional RNN in TensorFlow
 inputs = layers.Input(shape=(max_vocab_length,))
 x = embedding_layers(inputs)
-x = layers.Conv1D(32, kernel_size=5, padding="same", activation="relu")(x)
-x = layers.Conv1D(64, kernel_size=5, padding="same", activation="relu")(x)
-x = layers.Conv1D(128, kernel_size=5, padding="same", activation="relu")(x)
-x = layers.GlobalAveragePooling1D()(x) # condense the output of our feature vector
+x = layers.Flatten()(x)
+x = layers.Dropout(0.6)(x)
+x = tf.keras.layers.Dense(60, activation='elu')(x)
+x = layers.Dropout(0.25)(x)
 outputs = layers.Dense(46, activation="softmax")(x)
-model= tf.keras.Model(inputs, outputs, name="model_4_Bidirectional")
+model= tf.keras.Model(inputs, outputs, name="Dense_model")
 
-# Compile
 model.compile(loss="categorical_crossentropy",
-                optimizer=tf.keras.optimizers.Adam(),
+                optimizer=tf.keras.optimizers.Adam(
+                    learning_rate = 0.00075
+                    ),
                 metrics=["accuracy"])
 
-# Get a summary of our bidirectional model
 model.summary()
 
 start = datetime.now()
-# Fit the model (takes longer because of the bidirectional layers)
 model_history = model.fit(train_dataset,
                            epochs=5,
                            validation_data=valid_dataset,

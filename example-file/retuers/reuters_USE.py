@@ -72,7 +72,7 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 # Set random seed and create embedding layer (new embedding layer for each model)
 sentence_encoder_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
                                         input_shape=[], # shape of inputs coming to our model 
-                                        dtype=tf.string, # data type of inputs coming to the USE layer
+                                        dtype=tf.float32, # data type of inputs coming to the USE layer
                                         trainable=False, # keep the pretrained weights (we'll create a feature extractor)
                                         name="USE")
 

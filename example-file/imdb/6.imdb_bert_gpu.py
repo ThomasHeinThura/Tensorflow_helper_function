@@ -16,6 +16,7 @@ import tensorflow_datasets as tfds
 from datetime import datetime
 from tensorflow.keras import layers
 import tensorflow_text as text
+from official.nlp import optimization  # to create AdamW optimizer
 
 tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(1)
@@ -25,41 +26,29 @@ print("Hub version: ", hub.__version__)
 print("GPU is", "available" if tf.config.list_physical_devices("GPU") else "NOT AVAILABLE")
 
 tf.random.set_seed(125)
-epoch = 10
 
 # Split the training set into 60% and 40% to end up with 15,000 examples
 # for training, 10,000 examples for validation and 25,000 examples for testing.
 train_data, validation_data, test_data = tfds.load(
     name="imdb_reviews", 
     split=('train[:60%]', 'train[60%:]', 'test'),
+    batch_size= -1,
     as_supervised=True)
 
-# Data preparation 
+train_sentences, train_labels = train_data
+valid_sentences, valid_labels = validation_data
+test_sentences, test_labels = test_data
 
-def get_features_from_tfdataset(tfdataset, batched=False):
+print(f"Train Features: {train_sentences.shape} , Labels: {train_labels.shape}")
+print(f"Valid Features: {valid_sentences.shape} , Labels: {valid_labels.shape}")
+print(f"Test Features: {test_sentences.shape} , Labels: {test_labels.shape}")
 
-    features = list(map(lambda x: x[0], tfdataset)) # Get labels 
-
-    if not batched:
-        return tf.stack(features, axis=0) # concat the list of batched labels
-
-    return features
-
-def get_labels_from_tfdataset(tfdataset, batched=False):
-
-    labels = list(map(lambda x: x[1], tfdataset)) # Get labels 
-
-    if not batched:
-        return tf.stack(labels, axis=0) # concat the list of batched labels
-
-    return labels
-
-valid_sentence = get_features_from_tfdataset(validation_data)
-valid_labels = get_labels_from_tfdataset(validation_data)
-
-
-max_vocab = 10_000  # Maximum vocab size.
-max_seq_len = 600  # Sequence length to pad the outputs to.
+train_dataset = tf.data.Dataset.from_tensor_slices((train_sentences, train_labels))
+train_dataset =  train_dataset.shuffle(15000).batch(128).prefetch(tf.data.AUTOTUNE)
+valid_dataset = tf.data.Dataset.from_tensor_slices((valid_sentences,valid_labels))
+valid_dataset = valid_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
+test_dataset = tf.data.Dataset.from_tensor_slices((test_sentences,test_labels))
+test_dataset = test_dataset.batch(128).prefetch(tf.data.AUTOTUNE)
 
 # Create BERT 
 BERT_MODEL = "https://tfhub.dev/google/experts/bert/wiki_books/2" # @param {type: "string"} ["https://tfhub.dev/google/experts/bert/wiki_books/2", "https://tfhub.dev/google/experts/bert/wiki_books/mnli/2", "https://tfhub.dev/google/experts/bert/wiki_books/qnli/2", "https://tfhub.dev/google/experts/bert/wiki_books/qqp/2", "https://tfhub.dev/google/experts/bert/wiki_books/squad2/2", "https://tfhub.dev/google/experts/bert/wiki_books/sst2/2",  "https://tfhub.dev/google/experts/bert/pubmed/2", "https://tfhub.dev/google/experts/bert/pubmed/squad2/2"]
@@ -102,21 +91,36 @@ net = tf.keras.layers.Dense(1, activation=None, name='classifier')(net)
 model = tf.keras.Model(inputs, net, name="BERT")
 
 model.summary()
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.00065),
-              loss=tf.keras.losses.BinaryCrossentropy(),
-              metrics=['accuracy'])
+
+
+loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+metrics = tf.metrics.BinaryAccuracy()
+epochs = 5
+steps_per_epoch = tf.data.experimental.cardinality(train_dataset).numpy()
+num_train_steps = steps_per_epoch * epochs
+num_warmup_steps = int(0.1*num_train_steps)
+
+init_lr = 3e-5
+optimizer = optimization.create_optimizer(init_lr=init_lr,
+                                          num_train_steps=num_train_steps,
+                                          num_warmup_steps=num_warmup_steps,
+                                          optimizer_type='adamw')
+
+model.compile(optimizer=optimizer,
+              loss=loss,
+              metrics=metrics)
 
 
 start = datetime.now()
-history = model.fit(train_data.shuffle(15000).batch(512).prefetch(tf.data.AUTOTUNE),
-                    epochs=epoch,
-                    validation_data=validation_data.batch(512).prefetch(tf.data.AUTOTUNE),
+history = model.fit(train_dataset,
+                    epochs=epochs,
+                    validation_data=valid_dataset,
                     verbose=1)
 
 end = datetime.now()
 
 print(f"The time taken to train the model is :{end - start}")
-results = model.evaluate(test_data.batch(512))
+results = model.evaluate(test_dataset)
 
 def calculate_accuracy_results(y_true, y_pred):
     from sklearn.metrics import accuracy_score, precision_recall_fscore_support
@@ -139,7 +143,7 @@ def calculate_accuracy_results(y_true, y_pred):
                       "f1": model_f1}
     return model_results
 
-result_preds_probs = model.predict(valid_sentence)
+result_preds_probs = model.predict(valid_sentences)
 result_preds = tf.squeeze(tf.round(result_preds_probs))
 
 results = calculate_accuracy_results( 

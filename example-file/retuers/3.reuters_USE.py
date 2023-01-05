@@ -1,10 +1,10 @@
 """
 The model performace : 
-val_accuracy : 77.52%
-val_loss : 0.9262
-time : 1min15sec
-f1 : 0.7543
-epochs : 20
+val_accuracy : 80.45%
+val_loss : 0.8013
+time : 1min45sec
+f1 : 0.7973
+epochs : 15
 """
 
 import os
@@ -74,20 +74,14 @@ sentence_encoder_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sent
 sentence_encoder_layer
 
 #BUild USE model 
-# inputs = tf.keras.layers.Input(shape=(1,), dtype=tf.string)
-# x = sentence_encoder_layer(inputs)
-# x = layers.Conv1D(32, kernel_size=5, padding="same", activation="relu")(x)
-# x = layers.Conv1D(64, kernel_size=5, padding="same", activation="relu")(x)
-# x = layers.Conv1D(128, kernel_size=5, padding="same", activation="relu")(x)
-# x = layers.Flatten()(x) # condense the output of our feature vector
-# outputs = layers.Dense(46, activation="softmax")(x)
-# model_USE= tf.keras.Model(inputs, outputs, name="USE")
-
 model_USE = tf.keras.Sequential([
   sentence_encoder_layer, # take in sentences and then encode them into an embedding
   layers.Dropout(0.25),
-  layers.Dense(512, activation="elu"),
-  layers.Dense(256, activation="elu"),
+#   layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),
+#   layers.Conv1D(32, 5, padding='same', activation='elu'),
+#   layers.Flatten(),
+  layers.Dense(256, activation="relu"),
+  layers.Dense(128, activation="relu"),
   layers.Dense(46, activation="softmax")
 ], name="model_USE")
 
@@ -101,7 +95,7 @@ model_USE.summary()
 
 start = datetime.now()
 model_USE_history = model_USE.fit(train_dataset,
-                                  epochs=20,
+                                  epochs=15,
                                   validation_data=valid_dataset,
                                   callbacks=[early_stopping, reduce_lr])
 

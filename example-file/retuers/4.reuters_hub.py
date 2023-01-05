@@ -72,11 +72,12 @@ hub_layer = hub.KerasLayer(embedding, input_shape=[],
 model_hub = tf.keras.Sequential([
   hub_layer, # take in sentences and then encode them into an embedding
   layers.Dropout(0.25),
-  layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),
-  layers.Conv1D(32, 5, padding='same', activation='elu'),
-  layers.Flatten(),
+#   layers.Lambda(lambda x: tf.expand_dims(x, axis=-1)),
+#   layers.Conv1D(32, 5, padding='same', activation='elu'),
+#   layers.Flatten(),
   layers.Dense(512, activation="relu"),
-  layers.Dense(100, activation="relu"),
+#   layers.Dense(100, activation="relu"),
+#   layers.LSTM(8, activation='relu'),
   layers.Dense(100, activation="relu"),
   layers.Dense(46, activation="softmax")
 ], name="model_hub")

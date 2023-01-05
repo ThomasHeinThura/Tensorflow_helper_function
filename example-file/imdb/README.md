@@ -15,7 +15,7 @@ Short Note from testing and building model
 2. The training dataset needs to extract for prediction and data visualization.
 3. Due to a lack of knowledge and skill, I take a lot of time to figure out how to extract the dataset, how to calculate the accuracy, how to fit, how to tokenize and vectorize, and how to make embedding.
 4. In this dataset, I try two transfer-learning embedding layers(hub layers and USE layers). Both give very good results.
-5. The Naive-Bayes model is in imdb_2.ipynb 
+5. The Naive-Bayes model is in imdb_1.ipynb 
 6. I built a feature extraction Bert transformer model and it can only run on GPU and need fine-tuning.
 
 Further study: Need to figure out why RNN models are likely to overfit in their own tokenize and embedded models.

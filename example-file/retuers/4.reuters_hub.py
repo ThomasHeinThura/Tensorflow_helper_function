@@ -65,13 +65,10 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  min_lr=1e-7)
 
 # Set random seed and create embedding layer (new embedding layer for each model)
-sentence_encoder_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
-                                        input_shape=[], # shape of inputs coming to our model 
-                                        dtype=tf.string, # data type of inputs coming to the USE layer
-                                        trainable=False, # keep the pretrained weights (we'll create a feature extractor)
-                                        name="USE")
+embedding = "https://tfhub.dev/google/nnlm-en-dim50/2"
+hub_layer = hub.KerasLayer(embedding, input_shape=[], 
+                           dtype=tf.string, trainable=True)
 
-sentence_encoder_layer
 
 #BUild USE model 
 # inputs = tf.keras.layers.Input(shape=(1,), dtype=tf.string)
@@ -83,31 +80,31 @@ sentence_encoder_layer
 # outputs = layers.Dense(46, activation="softmax")(x)
 # model_USE= tf.keras.Model(inputs, outputs, name="USE")
 
-model_USE = tf.keras.Sequential([
-  sentence_encoder_layer, # take in sentences and then encode them into an embedding
+model_hub = tf.keras.Sequential([
+  hub_layer, # take in sentences and then encode them into an embedding
   layers.Dropout(0.25),
   layers.Dense(512, activation="elu"),
   layers.Dense(256, activation="elu"),
   layers.Dense(46, activation="softmax")
-], name="model_USE")
+], name="model_hub")
 
 # Compile
-model_USE.compile(loss="categorical_crossentropy",
+model_hub.compile(loss="categorical_crossentropy",
                 optimizer=tf.keras.optimizers.Adam(),
                 metrics=["accuracy"])
 
-model_USE.summary()
+model_hub.summary()
 
 
 start = datetime.now()
-model_USE_history = model_USE.fit(train_dataset,
+model_USE_history = model_hub.fit(train_dataset,
                                   epochs=20,
                                   validation_data=valid_dataset,
                                   callbacks=[early_stopping, reduce_lr])
 
 end = datetime.now()
 print(f"The time taken to fit the modle is {end - start}")
-model_USE.evaluate(valid_dataset)
+model_hub.evaluate(valid_dataset)
 
 
 def calculate_accuracy_results(y_true, y_pred):
@@ -131,7 +128,7 @@ def calculate_accuracy_results(y_true, y_pred):
                       "f1": model_f1}
     return model_results
 
-model_preds_probs = model_USE.predict(test_decode)
+model_preds_probs = model_hub.predict(test_decode)
 model_preds = tf.argmax(model_preds_probs, axis=1)
 
 model_result = calculate_accuracy_results(y_pred=model_preds,

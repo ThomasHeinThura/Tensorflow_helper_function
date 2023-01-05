@@ -7,6 +7,7 @@ f1 : 0.8594
 epoch : 10
 """
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -15,7 +16,7 @@ from datetime import datetime
 from tensorflow.keras import layers 
 from tensorflow.keras.layers import TextVectorization 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(1)
 print("Version: ", tf.__version__)
@@ -57,7 +58,7 @@ features = get_features_from_tfdataset(train_data)
 valid_features = get_features_from_tfdataset(validation_data)
 valid_labels = get_labels_from_tfdataset(validation_data)
 print(valid_features.shape, valid_labels.shape)
-
+print(features.shape, labels.shape)
 
 sentence_encoder_layer = hub.KerasLayer("https://tfhub.dev/google/universal-sentence-encoder/4",
                                         input_shape=[], # shape of inputs coming to our model 

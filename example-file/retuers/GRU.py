@@ -1,9 +1,9 @@
 """
 The model performace : 
-val_accuracy : 79.79%
-val_loss : 0.9912
-time : 5min50sec
-f1 : 0.7935
+val_accuracy : 66.60%
+val_loss : 1.4097
+time : 7min1sec
+f1 : 0.6376
 epochs : 10
 """
 
@@ -83,7 +83,7 @@ test_vectorize = vectorize_layer(train_decode)
 
 print(f"The testing for vectorize {test_vectorize.shape}")
 embedding_layers = layers.Embedding(input_dim=max_vocab,
-                                     output_dim=5,
+                                     output_dim=32,
                                      embeddings_initializer="uniform",
                                      input_length = max_seq_len,
                                      name="embedding_layers")
@@ -92,11 +92,10 @@ model_hub = tf.keras.Sequential([
   layers.Input(shape=(1,), dtype=tf.string),
   vectorize_layer,
   embedding_layers,
-  #tf.keras.layers.GRU(64, return_sequences=True),
-  tf.keras.layers.Bidirectional(layers.LSTM(64, return_sequences=True)),
-  tf.keras.layers.Bidirectional(layers.LSTM(64)),
-  layers.Dense(100, activation="relu"),
-  layers.Dense(100, activation="relu"),
+#   tf.keras.layers.Bidirectional(layers.GRU(64, return_sequences=True)),
+  tf.keras.layers.Bidirectional(layers.GRU(128)),
+#   layers.Dense(256, activation="relu"),
+  layers.Dense(128, activation="relu"),
   layers.Dense(46, activation="softmax")
 ], name="GRU")
 

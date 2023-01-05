@@ -12,3 +12,5 @@
 * The others RNN models that a lot of time 5min for one epoch and take a lot of memory. I think it is because when the dataset input is tokenized and the training starts with a large tensor array and takes heavy input to RNN layers.
 * From my point of view, the main reason the model is easy to overfit and val_loss is hard to come down to 0.8 mark is because of the dataset.
 * Trying to import from the text dataset or reverse the tokenized data to the text data and embedded again may fix the problem. 
+* I try reversing the tokenized data to the text data and the RNN model can be trained easily.
+* Although the RNN model can be trained easily, val_accuracy is not increased much and is likely to overfit.

@@ -3,6 +3,7 @@ The model performace : I cheat alot in this dataset
 val_accuracy : 81% 
 val_loss : 0.9033
 Time : 3min20sec
+epoch : 5
 """
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 

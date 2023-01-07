@@ -1,6 +1,6 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
+from windows import WindowGenerator
 import datetime
 import IPython
 import IPython.display
@@ -57,8 +57,45 @@ df['Day cos'] = np.cos(timestamp_s * (2 * np.pi / day))
 df['Year sin'] = np.sin(timestamp_s * (2 * np.pi / year))
 df['Year cos'] = np.cos(timestamp_s * (2 * np.pi / year))
 
-print(f"The original dataset shape is :{df.shape()}")
+#Check and normalize
+print(f"The original dataset shape is :{df.shape}")
 from sklearn.preprocessing import minmax_scale
 scaled_df = minmax_scale(df)
 print(f"The scaled dataset shape is : {scaled_df.shape}")
 
+# check column name
+column_names = list(df.columns.values)
+scaled_df = pd.DataFrame(scaled_df.tolist(),columns=column_names)
+
+#Train_test_split
+n = len(scaled_df)
+train_df = scaled_df[0:int(n*0.7)]
+val_df = scaled_df[int(n*0.7):int(n*0.9)]
+test_df = scaled_df[int(n*0.9):]
+
+num_features = scaled_df.shape[1]
+print(f"The train shape is : {train_df.shape} \n"
+      f"The valid shape is : {val_df.shape} \n"
+      f"The test shape is : {test_df.shape} \n"
+      f"The number of feature: {num_features}")
+
+w2 = WindowGenerator(input_width=6, label_width=1, shift=1,
+                     train_df=train_df,
+                     val_df=val_df,
+                     test_df = test_df,
+                     label_columns=['T (degC)'])
+print(w2)
+
+# Stack three slices, the length of the total window.
+example_window = tf.stack([np.array(train_df[:w2.total_window_size]),
+                           np.array(train_df[100:100+w2.total_window_size]),
+                           np.array(train_df[200:200+w2.total_window_size])])
+
+print(example_window.shape)
+
+example_inputs, example_labels = w2.split_window(example_window)
+
+print('All shapes are: (batch, time, features)')
+print(f'Window shape: {example_window.shape}')
+print(f'Inputs shape: {example_inputs.shape}')
+print(f'Labels shape: {example_labels.shape}')

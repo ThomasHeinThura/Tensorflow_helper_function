@@ -1,3 +1,8 @@
+"""
+The model performance : 
+
+"""
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from windows import WindowGenerator, MultiStepLastBaseline, compile_and_fit
@@ -33,6 +38,7 @@ wv[bad_wv] = 0.0
 max_wv = df['max. wv (m/s)']
 bad_max_wv = max_wv == -9999.0
 max_wv[bad_max_wv] = 0.0
+
 #Change wide direction degree to sin and cos
 wv = df.pop('wv (m/s)')
 max_wv = df.pop('max. wv (m/s)')

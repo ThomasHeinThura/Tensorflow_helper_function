@@ -1,3 +1,7 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np 
@@ -5,9 +9,8 @@ from tensorflow.keras import layers
 from tensorflow import keras
 from sklearn.preprocessing import OneHotEncoder
 from datetime import datetime
-import os 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(1)
 tf.set_seed = 42

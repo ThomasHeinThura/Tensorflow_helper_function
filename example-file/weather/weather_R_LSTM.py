@@ -1,3 +1,9 @@
+"""
+The model performance : 
+MSE : 0.001413
+MAE : 0.02186
+"""
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from windows import WindowGenerator, MultiStepLastBaseline, compile_and_fit

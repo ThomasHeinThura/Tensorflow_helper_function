@@ -1,6 +1,7 @@
 """
 The model performance : 
-
+MAE : 0.001453
+MSE : 0.230945
 """
 
 import os

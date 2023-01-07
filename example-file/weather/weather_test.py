@@ -1,6 +1,6 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-from windows import WindowGenerator
+from windows import WindowGenerator, MultiStepLastBaseline, compile_and_fit
 import datetime
 import IPython
 import IPython.display
@@ -79,23 +79,41 @@ print(f"The train shape is : {train_df.shape} \n"
       f"The test shape is : {test_df.shape} \n"
       f"The number of feature: {num_features}")
 
-w2 = WindowGenerator(input_width=6, label_width=1, shift=1,
-                     train_df=train_df,
-                     val_df=val_df,
-                     test_df = test_df,
-                     label_columns=['T (degC)'])
-print(w2)
 
-# Stack three slices, the length of the total window.
-example_window = tf.stack([np.array(train_df[:w2.total_window_size]),
-                           np.array(train_df[100:100+w2.total_window_size]),
-                           np.array(train_df[200:200+w2.total_window_size])])
+OUT_STEPS = 24
+multi_window = WindowGenerator(input_width=24,
+                               label_width=OUT_STEPS,
+                               shift=OUT_STEPS,
+                               train_df= train_df,
+                               val_df= val_df,
+                               test_df= test_df)
 
-print(example_window.shape)
+#multi_window.plot()
+print(multi_window)
 
-example_inputs, example_labels = w2.split_window(example_window)
+last_baseline = MultiStepLastBaseline()
+last_baseline.compile(loss=tf.keras.losses.MeanSquaredError(),
+                      metrics=['mae'])
 
-print('All shapes are: (batch, time, features)')
-print(f'Window shape: {example_window.shape}')
-print(f'Inputs shape: {example_inputs.shape}')
-print(f'Labels shape: {example_labels.shape}')
+val_performance = {}
+performance = {}
+
+val_performance['Last'] = last_baseline.evaluate(multi_window.val)
+performance['Last'] = last_baseline.evaluate(multi_window.test, verbose=0)
+#multi_window.plot(last_baseline)
+
+
+lstm_model = tf.keras.models.Sequential([
+    # Shape [batch, time, features] => [batch, time, lstm_units]
+    tf.keras.layers.LSTM(32, return_sequences=True),
+    # Shape => [batch, time, features]
+    tf.keras.layers.Dense(units=num_features)
+])
+
+history = compile_and_fit(lstm_model, multi_window)
+
+IPython.display.clear_output()
+val_performance['LSTM'] = lstm_model.evaluate( multi_window.val)
+performance['LSTM'] = lstm_model.evaluate( multi_window.test, verbose=0)
+
+print(performance)

@@ -1,9 +1,9 @@
 """
 The model performance : 
-val_accuary : 59%
-val_loss : 1.0452
-time : 7min16sec
-epoch : 10 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
+val_accuary : 71.03%
+val_loss : 0.7399
+time :  18min15sec
+epoch : 20
 """
 
 import numpy as np
@@ -18,8 +18,6 @@ import tensorflow_datasets as tfds
 import pathlib
 from datetime import datetime
 from tensorflow.keras import layers
-
-
 
 batch_size = 32
 img_height = 128
@@ -70,12 +68,11 @@ data_augmentation = tf.keras.Sequential([
   preprocessing.RandomZoom(0.2),
   preprocessing.RandomHeight(0.2),
   preprocessing.RandomWidth(0.2),
-  # preprocessing.Rescaling(1./255) # keep for ResNet50V2, remove for EfficientNetB0
+  preprocessing.Rescaling(1./255) # keep for ResNet50V2, remove for EfficientNetB0
 ], name ="data_augmentation")
 
 inputs = layers.Input(shape=input_shape, name="input_layer")
-x = tf.keras.layers.Rescaling(1./255)(inputs)
-x = data_augmentation(x)
+x = data_augmentation(inputs)
 x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu")(x)
 x = layers.MaxPooling2D()(x)
 x = layers.Dropout(0.1)(x)
@@ -91,7 +88,7 @@ x = layers.Dropout(0.25)(x)
 x = layers.Conv2D(512, kernel_size=3, padding="same" ,activation="elu")(x)
 x = layers.MaxPooling2D()(x)
 x = layers.Dropout(0.25)(x)
-x = layers.Flatten()(x)
+x = layers.GlobalMaxPooling2D()(x)
 x = layers.Dense(128, activation="elu", name="Dense_1")(x)
 x = layers.Dropout(0.5)(x)
 x = layers.Dense(64, activation="elu", name="Dense_2")(x)

@@ -58,28 +58,37 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  patience=3,
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
+from tensorflow.keras.layers.experimental import preprocessing
+data_augmentation = tf.keras.Sequential([
+  preprocessing.RandomFlip("horizontal"),
+  preprocessing.RandomRotation(0.2),
+  preprocessing.RandomZoom(0.2),
+  preprocessing.RandomHeight(0.2),
+  preprocessing.RandomWidth(0.2),
+  preprocessing.Rescaling(1./255) # keep for ResNet50V2, remove for EfficientNetB0
+], name ="data_augmentation")
 
 #Build model
-model = tf.keras.Sequential([
-  tf.keras.layers.Input(shape=(input_shape),name='input_layers'),
-  tf.keras.layers.Rescaling(1./255),
-  tf.keras.layers.Conv2D(32, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(64, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(128, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(256, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(512, 3, activation='relu'),
-  # tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.GlobalMaxPooling2D(),
-  tf.keras.layers.Dropout(0.25),
-  tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(64, activation='relu'),
-  tf.keras.layers.Dense(num_classes, activation='softmax')
-])
+input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
+x = data_augmentation(input)
+x = tf.keras.layers.Conv2D(32, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.Conv2D(64, 3, activation='relu') (x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.Conv2D(128, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+# x = tf.keras.layers.Conv2D(256, 3, activation='relu')(x)
+# x = tf.keras.layers.MaxPooling2D()(x)
+# x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
+# x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.GlobalMaxPooling2D()(x)
+x = tf.keras.layers.Dropout(0.25)(x)
+# x = tf.keras.layers.Dense(128, activation='relu')(x)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
+x = tf.keras.layers.Dense(64, activation='relu')(x)
+output = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
+
+model = tf.keras.Model(input,output)
 
 model.compile(
   optimizer='adam',

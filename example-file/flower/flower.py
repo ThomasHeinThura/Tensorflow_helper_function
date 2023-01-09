@@ -19,8 +19,8 @@ import pathlib
 from datetime import datetime
 
 batch_size = 32
-img_height = 64
-img_width = 64
+img_height = 128
+img_width = 128
 AUTOTUNE = tf.data.AUTOTUNE
 input_shape = (img_height,img_width, 3)
 num_classes = 5
@@ -96,19 +96,20 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
 model = tf.keras.Sequential([
   tf.keras.layers.Input(shape=(input_shape),name='input_layers'),
   tf.keras.layers.Rescaling(1./255),
-  tf.keras.layers.Conv2D(32, 3, activation='relu'),
-  tf.keras.layers.BatchNormalization(),
+  tf.keras.layers.Conv2D(32, 3, activation='elu'),
+  #tf.keras.layers.BatchNormalization(),
   tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(64, 3, activation='relu'),
-  tf.keras.layers.BatchNormalization(),
+  tf.keras.layers.Conv2D(64, 3, activation='elu'),
+  #tf.keras.layers.BatchNormalization(),
   tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(128, 3, activation='relu'),
-  tf.keras.layers.BatchNormalization(),
+  tf.keras.layers.Conv2D(128, 3, activation='elu'),
+  #tf.keras.layers.BatchNormalization(),
   tf.keras.layers.MaxPooling2D(),
   tf.keras.layers.Flatten(),
   tf.keras.layers.Dropout(0.25),
-  tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(num_classes)
+  tf.keras.layers.Dense(128, activation='elu'),
+  tf.keras.layers.Dense(64, activation='elu'),
+  tf.keras.layers.Dense(num_classes, activation='softmax')
 ])
 
 model.compile(
@@ -119,10 +120,10 @@ model.compile(
 model.summary()
 
 start = datetime.now()
-history_model = model.fit(train_dataset,
-                          steps_per_epoch=len(train_dataset),
-                          validation_data=valid_dataset,
-                          validation_steps=int(0.25*len(valid_dataset)),
+history_model = model.fit(train_ds,
+                          steps_per_epoch=len(train_ds),
+                          validation_data=val_ds,
+                          validation_steps=int(0.25*len(val_ds)),
                           callbacks=[early_stopping, reduce_lr],
                           epochs=epoch) 
 end = datetime.now()
@@ -130,32 +131,5 @@ end = datetime.now()
 
 print(f"The time taken to train the model is {end - start}")
 # Evaluate model
-model.evaluate(valid_dataset)
+model.evaluate(val_ds)
 
-def calculate_accuracy_results(y_true, y_pred):
-    from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-    """
-     Calculates model accuracy, precision, recall and f1 score of a binary classification model.
-
-    Args:
-        y_true: true labels in the form of a 1D array
-        y_pred: predicted labels in the form of a 1D array
-
-    Returns a dictionary of accuracy, precision, recall, f1-score.
-    """
-    # Calculate model accuracy
-    model_accuracy = accuracy_score(y_true, y_pred) * 100
-    # Calculate model precision, recall and f1 score using "weighted average
-    model_precision, model_recall, model_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="weighted", zero_division= 1)
-    model_results = {"accuracy": model_accuracy,
-                      "precision": model_precision,
-                      "recall": model_recall,
-                      "f1": model_f1}
-    return model_results
-
-model_preds_probs = model.predict(test_features)
-model_preds = tf.argmax(model_preds_probs, axis=1)
-test_labels_encode = tf.argmax(test_labels,axis=1)
-model_result = calculate_accuracy_results(y_pred=model_preds,
-                                           y_true=test_labels_encode)
-print(model_result)

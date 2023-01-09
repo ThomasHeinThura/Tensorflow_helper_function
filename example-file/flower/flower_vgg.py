@@ -1,9 +1,9 @@
 """
 The model performance : 
-val_accuary : 77%
-val_loss : 0.6853
-time : 12min38sec
-epoch : 20 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
+val_accuary : 77.64%
+val_loss : 0.6951
+time : 41min39sec
+epoch : 20
 """
 
 import numpy as np
@@ -17,6 +17,11 @@ tf.autograph.set_verbosity(1)
 import tensorflow_datasets as tfds
 import pathlib
 from datetime import datetime
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.models import Model
+
+
 
 batch_size = 32
 img_height = 128
@@ -59,27 +64,16 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
 
+base_model = tf.keras.applications.vgg16.VGG16(include_top=False)
+base_model.trainable = False
+
 #Build model
-model = tf.keras.Sequential([
-  tf.keras.layers.Input(shape=(input_shape),name='input_layers'),
-  tf.keras.layers.Rescaling(1./255),
-  tf.keras.layers.Conv2D(32, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(64, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(128, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(256, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(512, 3, activation='relu'),
-  # tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.GlobalMaxPooling2D(),
-  tf.keras.layers.Dropout(0.25),
-  tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(64, activation='relu'),
-  tf.keras.layers.Dense(num_classes, activation='softmax')
-])
+input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
+rescaling =  tf.keras.layers.Rescaling(1./255) (input)
+base_model = base_model(rescaling)
+pooling = tf.keras.layers.GlobalAveragePooling2D()(base_model)
+output = Dense(num_classes, activation="softmax")(pooling)
+model  = Model(inputs=input, outputs=output)
 
 model.compile(
   optimizer='adam',

@@ -1,9 +1,9 @@
 """
 The model performance : 
-val_accuary : 77%
-val_loss : 0.6853
-time : 12min38sec
-epoch : 20 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
+val_accuary : 59%
+val_loss : 1.0452
+time : 7min16sec
+epoch : 10 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
 """
 
 import numpy as np
@@ -17,6 +17,9 @@ tf.autograph.set_verbosity(1)
 import tensorflow_datasets as tfds
 import pathlib
 from datetime import datetime
+from tensorflow.keras import layers
+
+
 
 batch_size = 32
 img_height = 128
@@ -58,28 +61,43 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  patience=3,
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
+from tensorflow.keras.layers.experimental import preprocessing
 
-#Build model
-model = tf.keras.Sequential([
-  tf.keras.layers.Input(shape=(input_shape),name='input_layers'),
-  tf.keras.layers.Rescaling(1./255),
-  tf.keras.layers.Conv2D(32, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(64, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(128, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(256, 3, activation='relu'),
-  tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(512, 3, activation='relu'),
-  # tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.GlobalMaxPooling2D(),
-  tf.keras.layers.Dropout(0.25),
-  tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(64, activation='relu'),
-  tf.keras.layers.Dense(num_classes, activation='softmax')
-])
+# Create a data augmentation stage with horizontal flipping, rotations,
+data_augmentation = tf.keras.Sequential([
+  preprocessing.RandomFlip("horizontal"),
+  preprocessing.RandomRotation(0.2),
+  preprocessing.RandomZoom(0.2),
+  preprocessing.RandomHeight(0.2),
+  preprocessing.RandomWidth(0.2),
+  # preprocessing.Rescaling(1./255) # keep for ResNet50V2, remove for EfficientNetB0
+], name ="data_augmentation")
+
+inputs = layers.Input(shape=input_shape, name="input_layer")
+x = tf.keras.layers.Rescaling(1./255)(inputs)
+x = data_augmentation(x)
+x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu")(x)
+x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.1)(x)
+x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(x)
+x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.25)(x)
+x = layers.Conv2D(128, kernel_size=3, padding="same" ,activation="elu")(x)
+x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.5)(x)
+x = layers.Conv2D(256, kernel_size=3, padding="same" ,activation="elu")(x)
+x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.25)(x)
+x = layers.Conv2D(512, kernel_size=3, padding="same" ,activation="elu")(x)
+x = layers.MaxPooling2D()(x)
+x = layers.Dropout(0.25)(x)
+x = layers.Flatten()(x)
+x = layers.Dense(128, activation="elu", name="Dense_1")(x)
+x = layers.Dropout(0.5)(x)
+x = layers.Dense(64, activation="elu", name="Dense_2")(x)
+outputs = layers.Dense(num_classes, activation="softmax",name="output_layer")(x)      
+model = tf.keras.Model(inputs, outputs) 
+
 
 model.compile(
   optimizer='adam',

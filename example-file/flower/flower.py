@@ -1,3 +1,11 @@
+"""
+The model performance : 
+val_accuary : 86%
+val_loss : 0.4491
+time : 53min
+epoch : 25 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
+"""
+
 import numpy as np
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -8,13 +16,15 @@ tf.get_logger().setLevel('ERROR')
 tf.autograph.set_verbosity(1)
 import tensorflow_datasets as tfds
 import pathlib
+from datetime import datetime
 
 batch_size = 32
-img_height = 180
-img_width = 180
+img_height = 64
+img_width = 64
 AUTOTUNE = tf.data.AUTOTUNE
-input_shpae = (img_height,img_width, 3)
+input_shape = (img_height,img_width, 3)
 num_classes = 5
+epoch = 10
 
 # data work thorugh dirpath for CNN
 def walk_through_dir(dir_path):
@@ -46,6 +56,7 @@ def view_class_name_from_dir(path):
     class_name = np.array(sorted([item.name for item in data_dir.glob('*')]))
     return print(class_name)
 
+# Import Data
 flower_dir = '/home/hanlinn/tensorflow_datasets/flowers/'
 flower_df = walk_through_dir(flower_dir)
 flower_class_name = view_class_name_from_dir(flower_dir)
@@ -71,15 +82,31 @@ print(class_names)
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
+# Callbacks
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
+                                                  patience=5) # if val loss decreases for 3 epochs in a row, stop training
+
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
+                                                 factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
+                                                 patience=3,
+                                                 verbose=1, # print out when learning rate goes down 
+                                                 min_lr=1e-7)
+
+#Build model
 model = tf.keras.Sequential([
+  tf.keras.layers.Input(shape=(input_shape),name='input_layers'),
   tf.keras.layers.Rescaling(1./255),
   tf.keras.layers.Conv2D(32, 3, activation='relu'),
+  tf.keras.layers.BatchNormalization(),
   tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(32, 3, activation='relu'),
+  tf.keras.layers.Conv2D(64, 3, activation='relu'),
+  tf.keras.layers.BatchNormalization(),
   tf.keras.layers.MaxPooling2D(),
-  tf.keras.layers.Conv2D(32, 3, activation='relu'),
+  tf.keras.layers.Conv2D(128, 3, activation='relu'),
+  tf.keras.layers.BatchNormalization(),
   tf.keras.layers.MaxPooling2D(),
   tf.keras.layers.Flatten(),
+  tf.keras.layers.Dropout(0.25),
   tf.keras.layers.Dense(128, activation='relu'),
   tf.keras.layers.Dense(num_classes)
 ])
@@ -89,7 +116,46 @@ model.compile(
   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
   metrics=['accuracy'])
 
-history = model.fit( train_ds, validation_data=val_ds, epochs=3)
-# inputs = layers.Input(shape=input_shape, name="input_layer")
-# layers.Lambda(lambda x: tf.expand_dims(x, axis=-1))
+model.summary()
 
+start = datetime.now()
+history_model = model.fit(train_dataset,
+                          steps_per_epoch=len(train_dataset),
+                          validation_data=valid_dataset,
+                          validation_steps=int(0.25*len(valid_dataset)),
+                          callbacks=[early_stopping, reduce_lr],
+                          epochs=epoch) 
+end = datetime.now()
+
+
+print(f"The time taken to train the model is {end - start}")
+# Evaluate model
+model.evaluate(valid_dataset)
+
+def calculate_accuracy_results(y_true, y_pred):
+    from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+    """
+     Calculates model accuracy, precision, recall and f1 score of a binary classification model.
+
+    Args:
+        y_true: true labels in the form of a 1D array
+        y_pred: predicted labels in the form of a 1D array
+
+    Returns a dictionary of accuracy, precision, recall, f1-score.
+    """
+    # Calculate model accuracy
+    model_accuracy = accuracy_score(y_true, y_pred) * 100
+    # Calculate model precision, recall and f1 score using "weighted average
+    model_precision, model_recall, model_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="weighted", zero_division= 1)
+    model_results = {"accuracy": model_accuracy,
+                      "precision": model_precision,
+                      "recall": model_recall,
+                      "f1": model_f1}
+    return model_results
+
+model_preds_probs = model.predict(test_features)
+model_preds = tf.argmax(model_preds_probs, axis=1)
+test_labels_encode = tf.argmax(test_labels,axis=1)
+model_result = calculate_accuracy_results(y_pred=model_preds,
+                                           y_true=test_labels_encode)
+print(model_result)

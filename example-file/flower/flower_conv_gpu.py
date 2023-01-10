@@ -32,14 +32,30 @@ num_classes = 5
 epoch = 50
 
 # Import Data
+# Import Data
 
-(train_ds, val_ds), metadata = tfds.load(
-    'tf_flowers',
-    split=['train[:80%]', 'train[80%:]'],
-    with_info=True,
-    as_supervised=True,
-    batch_size=batch_size
-)
+flower_dir = '/home/hanlinn/tensorflow_datasets/flowers/'
+
+train_ds = tf.keras.utils.image_dataset_from_directory(
+  flower_dir,
+  validation_split=0.2,
+  subset="training",
+  seed=123,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
+
+val_ds = tf.keras.utils.image_dataset_from_directory(
+  flower_dir,
+  validation_split=0.2,
+  subset="validation",
+  seed=123,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
+print(train_ds)
+print(val_ds)
+
+train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
+val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 print(train_ds)
 print(val_ds)
@@ -72,12 +88,27 @@ data_augmentation = tf.keras.Sequential([
 
 #Build model
 input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
-rescaling =  data_augmentation(input)
-base_model = base_model(input)
-pooling = tf.keras.layers.GlobalAveragePooling2D()(base_model)
-x = Dense(256,activation='relu')(pooling)
-output = Dense(num_classes, activation="softmax")(x)
-model  = Model(inputs=input, outputs=output)
+x = data_augmentation(input)
+x = tf.keras.layers.Conv2D(64, 3, activation='relu')(input)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.Conv2D(64, 3, activation='relu') (x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.Conv2D(128, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.Conv2D(256, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.GlobalMaxPooling2D()(x)
+x = tf.keras.layers.Dropout(0.25)(x)
+x = tf.keras.layers.Dense(256, activation='relu')(x)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
+x = tf.keras.layers.Dense(64, activation='relu')(x)
+output = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
+
+model = tf.keras.Model(input,output)
 
 model.compile(
   optimizer=tf.keras.optimizers.RMSprop(),

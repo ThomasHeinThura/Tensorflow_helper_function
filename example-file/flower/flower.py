@@ -1,9 +1,9 @@
 """
 The model performance : 
-val_accuary : 77%
-val_loss : 0.6853
-time : 12min38sec
-epoch : 20 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
+val_accuary : 80%
+val_loss : 0.6780
+time : 12min19sec
+epoch : 20
 """
 
 import numpy as np
@@ -51,7 +51,7 @@ val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 # Callbacks
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=5) # if val loss decreases for 3 epochs in a row, stop training
+                                                  patience=10) # if val loss decreases for 3 epochs in a row, stop training
 
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
@@ -70,7 +70,7 @@ data_augmentation = tf.keras.Sequential([
 
 #Build model
 input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
-x = data_augmentation(input)
+x = tf.keras.layers.Rescaling(1./255)(input)
 x = tf.keras.layers.Conv2D(32, 3, activation='relu')(x)
 x = tf.keras.layers.MaxPooling2D()(x)
 x = tf.keras.layers.Conv2D(64, 3, activation='relu') (x)
@@ -81,9 +81,11 @@ x = tf.keras.layers.Conv2D(256, 3, activation='relu')(x)
 x = tf.keras.layers.MaxPooling2D()(x)
 x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
 x = tf.keras.layers.MaxPooling2D()(x)
-x = tf.keras.layers.GlobalMaxPooling2D()(x)
-x = tf.keras.layers.Dropout(0.25)(x)
-x = tf.keras.layers.Dense(256, activation='relu')(x)
+# x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
+# x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.GlobalAveragePooling2D()(x)
+x = tf.keras.layers.Dropout(0.5)(x)
+# x = tf.keras.layers.Dense(256, activation='relu')(x)
 x = tf.keras.layers.Dense(128, activation='relu')(x)
 x = tf.keras.layers.Dense(64, activation='relu')(x)
 output = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
@@ -91,7 +93,7 @@ output = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
 model = tf.keras.Model(input,output)
 
 model.compile(
-  optimizer='adam',
+  optimizer=tf.keras.optimizers.Adam(),
   loss=tf.keras.losses.SparseCategoricalCrossentropy(),
   metrics=['accuracy'])
 

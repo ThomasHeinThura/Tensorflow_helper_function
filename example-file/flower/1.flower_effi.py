@@ -1,9 +1,9 @@
 """
 The model performance : 
 val_accuary : 81%
-val_loss : 0.6120
-time : 12min19sec
-epoch : 20
+val_loss : 0.6898
+time : 16min46sec
+epoch : 25
 """
 
 import numpy as np

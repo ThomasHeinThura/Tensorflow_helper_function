@@ -71,21 +71,27 @@ data_augmentation = tf.keras.Sequential([
 #Build model
 input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
 x = tf.keras.layers.Rescaling(1./255)(input)
+
 x = tf.keras.layers.Conv2D(32, 3, activation='relu')(x)
 x = tf.keras.layers.MaxPooling2D()(x)
 x = tf.keras.layers.BatchNormalization()(x)
+
 x = tf.keras.layers.Conv2D(64, 3, activation='relu') (x)
 x = tf.keras.layers.MaxPooling2D()(x)
 x = tf.keras.layers.BatchNormalization()(x)
+
 x = tf.keras.layers.Conv2D(128, 3, activation='relu')(x)
 x = tf.keras.layers.MaxPooling2D()(x)
 x = tf.keras.layers.BatchNormalization()(x)
+
 x = tf.keras.layers.Conv2D(256, 3, activation='relu')(x)
 x = tf.keras.layers.MaxPooling2D()(x)
 x = tf.keras.layers.BatchNormalization()(x)
+
 x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
 x = tf.keras.layers.MaxPooling2D()(x)
 x = tf.keras.layers.BatchNormalization()(x)
+
 x = tf.keras.layers.GlobalAveragePooling2D()(x)
 x = tf.keras.layers.Dropout(0.5)(x)
 # x = tf.keras.layers.Dense(256, activation='relu')(x)

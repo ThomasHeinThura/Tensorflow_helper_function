@@ -64,7 +64,7 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
 
-base_model = tf.keras.applications.vgg16.VGG16(include_top=False)
+base_model = tf.keras.applications.VGG19(include_top=False)
 base_model.trainable = False
 
 from tensorflow.keras.layers.experimental import preprocessing

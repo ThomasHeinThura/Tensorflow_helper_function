@@ -1,9 +1,9 @@
 """
 The model performance : 
-val_accuary : 77%
-val_loss : 0.6853
-time : 12min38sec
-epoch : 20 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
+val_accuary : 77.64%
+val_loss : 0.6951
+time : 41min39sec
+epoch : 20
 """
 
 import numpy as np
@@ -17,6 +17,11 @@ tf.autograph.set_verbosity(1)
 import tensorflow_datasets as tfds
 import pathlib
 from datetime import datetime
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.models import Model
+
+
 
 batch_size = 32
 img_height = 128
@@ -24,42 +29,39 @@ img_width = 128
 AUTOTUNE = tf.data.AUTOTUNE
 input_shape = (img_height,img_width, 3)
 num_classes = 5
-epoch = 20
+epoch = 50
 
 # Import Data
-flower_dir = '/home/hanlinn/tensorflow_datasets/flowers/'
 
-train_ds = tf.keras.utils.image_dataset_from_directory(
-  flower_dir,
-  validation_split=0.2,
-  subset="training",
-  seed=123,
-  image_size=(img_height, img_width),
-  batch_size=batch_size)
+(train_ds, val_ds), metadata = tfds.load(
+    'tf_flowers',
+    split=['train[:80%]', 'train[80%:]'],
+    with_info=True,
+    as_supervised=True,
+    batch_size=batch_size
+)
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
-  flower_dir,
-  validation_split=0.2,
-  subset="validation",
-  seed=123,
-  image_size=(img_height, img_width),
-  batch_size=batch_size)
 print(train_ds)
 print(val_ds)
-train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
-val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+train_ds = train_ds.batch(batch_size).cache().prefetch(buffer_size=AUTOTUNE)
+val_ds = val_ds.batch(batch_size).cache().prefetch(buffer_size=AUTOTUNE)
 
 # Callbacks
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=5) # if val loss decreases for 3 epochs in a row, stop training
+                                                  patience=10) # if val loss decreases for 3 epochs in a row, stop training
 
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
-                                                 patience=3,
+                                                 patience=5,
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
+
+base_model = tf.keras.applications.vgg16.VGG16(include_top=False)
+base_model.trainable = False
+
 from tensorflow.keras.layers.experimental import preprocessing
 data_augmentation = tf.keras.Sequential([
+  tf.keras.layers.Resizing(height=img_height, width= img_width),
   preprocessing.RandomFlip("horizontal"),
   preprocessing.RandomRotation(0.2),
   preprocessing.RandomZoom(0.2),
@@ -70,28 +72,15 @@ data_augmentation = tf.keras.Sequential([
 
 #Build model
 input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
-x = data_augmentation(input)
-x = tf.keras.layers.Conv2D(32, 3, activation='relu')(x)
-x = tf.keras.layers.MaxPooling2D()(x)
-x = tf.keras.layers.Conv2D(64, 3, activation='relu') (x)
-x = tf.keras.layers.MaxPooling2D()(x)
-x = tf.keras.layers.Conv2D(128, 3, activation='relu')(x)
-x = tf.keras.layers.MaxPooling2D()(x)
-x = tf.keras.layers.Conv2D(256, 3, activation='relu')(x)
-x = tf.keras.layers.MaxPooling2D()(x)
-x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
-x = tf.keras.layers.MaxPooling2D()(x)
-x = tf.keras.layers.GlobalMaxPooling2D()(x)
-x = tf.keras.layers.Dropout(0.25)(x)
-x = tf.keras.layers.Dense(256, activation='relu')(x)
-x = tf.keras.layers.Dense(128, activation='relu')(x)
-x = tf.keras.layers.Dense(64, activation='relu')(x)
-output = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
-
-model = tf.keras.Model(input,output)
+rescaling =  data_augmentation(input)
+base_model = base_model(input)
+pooling = tf.keras.layers.GlobalAveragePooling2D()(base_model)
+x = Dense(256,activation='relu')(pooling)
+output = Dense(num_classes, activation="softmax")(x)
+model  = Model(inputs=input, outputs=output)
 
 model.compile(
-  optimizer='adam',
+  optimizer=tf.keras.optimizers.RMSprop(),
   loss=tf.keras.losses.SparseCategoricalCrossentropy(),
   metrics=['accuracy'])
 

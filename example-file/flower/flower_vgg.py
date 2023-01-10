@@ -29,7 +29,7 @@ img_width = 128
 AUTOTUNE = tf.data.AUTOTUNE
 input_shape = (img_height,img_width, 3)
 num_classes = 5
-epoch = 20
+epoch = 50
 
 # Import Data
 flower_dir = '/home/hanlinn/tensorflow_datasets/flowers/'
@@ -56,27 +56,38 @@ val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 # Callbacks
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=5) # if val loss decreases for 3 epochs in a row, stop training
+                                                  patience=10) # if val loss decreases for 3 epochs in a row, stop training
 
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
-                                                 patience=3,
+                                                 patience=5,
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
 
 base_model = tf.keras.applications.vgg16.VGG16(include_top=False)
 base_model.trainable = False
 
+from tensorflow.keras.layers.experimental import preprocessing
+data_augmentation = tf.keras.Sequential([
+  preprocessing.RandomFlip("horizontal"),
+  preprocessing.RandomRotation(0.2),
+  preprocessing.RandomZoom(0.2),
+  preprocessing.RandomHeight(0.2),
+  preprocessing.RandomWidth(0.2),
+  preprocessing.Rescaling(1./255) # keep for ResNet50V2, remove for EfficientNetB0
+], name ="data_augmentation")
+
 #Build model
 input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
-rescaling =  tf.keras.layers.Rescaling(1./255) (input)
-base_model = base_model(rescaling)
+rescaling =  data_augmentation(input)
+base_model = base_model(rescaling, training=False)
 pooling = tf.keras.layers.GlobalAveragePooling2D()(base_model)
-output = Dense(num_classes, activation="softmax")(pooling)
+x = Dense(256,activation='relu')(pooling)
+output = Dense(num_classes, activation="softmax")(x)
 model  = Model(inputs=input, outputs=output)
 
 model.compile(
-  optimizer='adam',
+  optimizer=tf.keras.optimizers.RMSprop(),
   loss=tf.keras.losses.SparseCategoricalCrossentropy(),
   metrics=['accuracy'])
 
@@ -92,7 +103,7 @@ history_model = model.fit(train_ds,
 end = datetime.now()
 
 
-print(f"The time taken to train the model is {end - start}")
+print(f"\n The time taken to train the model is {end - start} \n")
 # Evaluate model
 model.evaluate(val_ds)
 

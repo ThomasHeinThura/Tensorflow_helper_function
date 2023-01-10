@@ -24,7 +24,7 @@ img_width = 128
 AUTOTUNE = tf.data.AUTOTUNE
 input_shape = (img_height,img_width, 3)
 num_classes = 5
-epoch = 20
+epoch = 25
 
 # Import Data
 flower_dir = '/home/hanlinn/tensorflow_datasets/flowers/'

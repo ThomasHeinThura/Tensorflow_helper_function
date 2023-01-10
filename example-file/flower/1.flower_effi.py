@@ -1,8 +1,8 @@
 """
 The model performance : 
-val_accuary : 71.03%
-val_loss : 0.7399
-time :  18min15sec
+val_accuary : 81%
+val_loss : 0.6120
+time : 12min19sec
 epoch : 20
 """
 
@@ -17,7 +17,6 @@ tf.autograph.set_verbosity(1)
 import tensorflow_datasets as tfds
 import pathlib
 from datetime import datetime
-from tensorflow.keras import layers
 
 batch_size = 32
 img_height = 128
@@ -25,7 +24,7 @@ img_width = 128
 AUTOTUNE = tf.data.AUTOTUNE
 input_shape = (img_height,img_width, 3)
 num_classes = 5
-epoch = 20
+epoch = 25
 
 # Import Data
 flower_dir = '/home/hanlinn/tensorflow_datasets/flowers/'
@@ -52,7 +51,7 @@ val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 # Callbacks
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=5) # if val loss decreases for 3 epochs in a row, stop training
+                                                  patience=10) # if val loss decreases for 3 epochs in a row, stop training
 
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
                                                  factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
@@ -60,8 +59,6 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
 from tensorflow.keras.layers.experimental import preprocessing
-
-# Create a data augmentation stage with horizontal flipping, rotations,
 data_augmentation = tf.keras.Sequential([
   preprocessing.RandomFlip("horizontal"),
   preprocessing.RandomRotation(0.2),
@@ -71,33 +68,35 @@ data_augmentation = tf.keras.Sequential([
   preprocessing.Rescaling(1./255) # keep for ResNet50V2, remove for EfficientNetB0
 ], name ="data_augmentation")
 
-inputs = layers.Input(shape=input_shape, name="input_layer")
-x = data_augmentation(inputs)
-x = layers.Conv2D(32, kernel_size=3, padding="same", activation="elu")(x)
-x = layers.MaxPooling2D()(x)
-x = layers.Dropout(0.1)(x)
-x = layers.Conv2D(64, kernel_size=3, padding="same", activation="elu")(x)
-x = layers.MaxPooling2D()(x)
-x = layers.Dropout(0.25)(x)
-x = layers.Conv2D(128, kernel_size=3, padding="same" ,activation="elu")(x)
-x = layers.MaxPooling2D()(x)
-x = layers.Dropout(0.5)(x)
-x = layers.Conv2D(256, kernel_size=3, padding="same" ,activation="elu")(x)
-x = layers.MaxPooling2D()(x)
-x = layers.Dropout(0.25)(x)
-x = layers.Conv2D(512, kernel_size=3, padding="same" ,activation="elu")(x)
-x = layers.MaxPooling2D()(x)
-x = layers.Dropout(0.25)(x)
-x = layers.GlobalMaxPooling2D()(x)
-x = layers.Dense(128, activation="elu", name="Dense_1")(x)
-x = layers.Dropout(0.5)(x)
-x = layers.Dense(64, activation="elu", name="Dense_2")(x)
-outputs = layers.Dense(num_classes, activation="softmax",name="output_layer")(x)      
-model = tf.keras.Model(inputs, outputs) 
+#Build model
+input = tf.keras.layers.Input(shape=(input_shape),name='input_layers')
+x = tf.keras.layers.Rescaling(1./255)(input)
+x = tf.keras.layers.Conv2D(32, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = tf.keras.layers.Conv2D(64, 3, activation='relu') (x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = tf.keras.layers.Conv2D(128, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = tf.keras.layers.Conv2D(256, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = tf.keras.layers.Conv2D(512, 3, activation='relu')(x)
+x = tf.keras.layers.MaxPooling2D()(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = tf.keras.layers.GlobalAveragePooling2D()(x)
+x = tf.keras.layers.Dropout(0.5)(x)
+# x = tf.keras.layers.Dense(256, activation='relu')(x)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
+x = tf.keras.layers.Dense(64, activation='relu')(x)
+output = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
 
+model = tf.keras.Model(input,output)
 
 model.compile(
-  optimizer='adam',
+  optimizer=tf.keras.optimizers.Adam(),
   loss=tf.keras.losses.SparseCategoricalCrossentropy(),
   metrics=['accuracy'])
 

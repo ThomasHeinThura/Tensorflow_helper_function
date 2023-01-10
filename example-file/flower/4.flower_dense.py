@@ -3,7 +3,7 @@ The model performance :
 val_accuary : 42%
 val_loss : 1.3371
 time : 3min1sec
-epoch : 10 (get val_accuary 77.78% on 10 epoch and loss is 0.6628 time is 22min51sec)
+epoch : 10
 """
 
 import numpy as np

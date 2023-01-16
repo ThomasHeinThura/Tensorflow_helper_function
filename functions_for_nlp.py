@@ -31,48 +31,6 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 1. for import data #
-# 1.1 import from local data
-def unzip_data(filename):
-    import zipfile
-    """
-    Unzips filename into the current working directory.
-
-    Args:
-        filename (str): a filepath to a target zip folder to be unzipped.
-    """
-    zip_ref = zipfile.ZipFile(filename, "r")
-    zip_ref.extractall()
-    zip_ref.close()
-# data work thorugh dirpath for CNN
-def walk_through_dir(dir_path):
-    import os 
-    """
-    Walks through dir_path returning its contents.
-
-    Args:
-        dir_path (str): target directory
-  
-    Returns:
-        A print out of:
-        number of subdiretories in dir_path
-        number of images (files) in each subdirectory
-        name of each subdirectory
-    """
-    for dirpath, dirnames, filenames in os.walk(dir_path):
-        print(f"There are {len(dirnames)} directories and {len(filenames)} images in '{dirpath}'.")
-# Visualize classnes from dir
-def view_class_name_from_dir(path):
-    import pathlib 
-    import numpy as np
-    """
-    View an class name from import data folder
-    :param path:
-    :return print class_name:
-    """
-    data_dir = pathlib.Path(path)
-    class_name = np.array(sorted([item.name for item in data_dir.glob('*')]))
-    return print(class_name)
 
 # 1.2 import from tf.keras.dataset # Procedures
 def show_methods_for_import_dataset():
@@ -292,43 +250,6 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  min_lr=1e-7)
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 4.3 save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
-# Create a function to implement a ModelCheckpoint callback with a specific filename 
-def create_model_checkpoint(model_name, save_path="model_experiments"):
-    import os
-    import tensorflow as tf
-    
-    # Create a ModelCheckpoint callback that saves the model's weights only
-    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(save_path, model_name), # create filepath to save model,
-                                                         monitor= "val_accuracy", # can set with val_loss # save the model weights with best validation accuracy
-                                                         save_weights_only=True, # set to False to save the entire model
-                                                         save_best_only=True, # set to True to save only the best model instead of a model every epoch 
-                                                         #save_freq="epoch", # save every epoch
-                                                         verbose=1) # only output a limited amount of text
-    return checkpoint_callback
-                                            
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 4.4 Creat tensorboard and can show history of models
-def create_tensorboard_callback(dir_name, experiment_name):
-    from datetime import datetime
-    import os 
-    import tensorflow as tf
-    """
-    Creates a TensorBoard callback instand to store log files.
-
-    Stores log files with the filepath:
-        "dir_name/experiment_name/current_datetime/"
-
-    Args:
-        dir_name: target directory to store TensorBoard log files
-        experiment_name: name of experiment directory (e.g. efficientnet_model_1)
-    """
-    log_dir = dir_name + "/" + experiment_name + "/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(
-          log_dir=log_dir
-    )
-    print(f"Saving TensorBoard log files to: {log_dir}")
-    return tensorboard_callback
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

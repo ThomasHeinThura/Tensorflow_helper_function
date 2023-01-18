@@ -32,38 +32,7 @@
 """
 
 
-# 1.2 import from tf.keras.dataset # Procedures
-def show_methods_for_import_dataset():
-    """
-    import tensorflow as tf
-    from tensorflow.keras.datasets import fashion_mnist
 
-    # The data has already been sorted into training and test sets for us
-    (train_data, train_labels), (test_data, test_labels) = fashion_mnist.load_data()
-
-    # Viewing the single example for fashion_mnist
-    # Plot a single example
-    import matplotlib.pyplot as plt
-    plt.imshow(train_data[7]);
-
-    # Plot an example image and its label
-    plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
-    plt.title(class_names[train_labels[17]]);
-    """
-    """ Import from dataset
-    # Get TensorFlow Datasets
-    import tensorflow_datasets as tfds
-    # List available datasets
-    datasets_list = tfds.list_builders() # get all available datasets in TFDS
-    print("food101" in datasets_list) # is the dataset we're after available?
-
-    # Load in the data (takes about 5-6 minutes in Google Colab)
-    (train_data, test_data), ds_info = tfds.load(name="food101", # target dataset to get from TFDS
-                                                 split=["train", "validation"], # what splits of data should we get? note: not all datasets have train, valid, test
-                                                 shuffle_files=True, # shuffle files on download?
-                                                 as_supervised=True, # download data in tuple format (sample, label), e.g. (image, label)
-                                                 with_info=True) # include dataset metadata? if so, tfds.load() returns tuple (data, ds_info)
-    """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 

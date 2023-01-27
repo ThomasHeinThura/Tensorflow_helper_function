@@ -99,3 +99,13 @@ for row in train_df_shuffled[["text", "target"]][random_index:random_index+5].it
   print(f"Text:\n{text}\n")
   print("---\n")
 """
+
+
+    ## Viewing the single example for fashion_mnist
+    ### Plot a single example
+    import matplotlib.pyplot as plt
+    plt.imshow(train_data[7]);
+
+    ## Plot an example image and its label
+    plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
+    plt.title(class_names[train_labels[17]]);

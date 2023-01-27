@@ -1,3 +1,5 @@
 from import_dataset import *
 
-show_methods_for_import_dataset()
+train_data, train_label, test_data, test_labels = import_from_dataset(fashion_mnist)
+
+print(train_data)

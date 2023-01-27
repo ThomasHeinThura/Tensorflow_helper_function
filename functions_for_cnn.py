@@ -30,53 +30,7 @@
 # 5.5 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
 """
-
-
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 2. for visualize import data #
-# 2.3 visualize picture
-# Plot multiple random images of fashion MNIST
-"""  # Plot multiple random images of fashion MNIST
-  import random
-  plt.figure(figsize=(7, 7))
-  for i in range(4):
-    ax = plt.subplot(2, 2, i + 1)
-    rand_index = random.choice(range(len(train_data)))
-    plt.imshow(train_data[rand_index], cmap=plt.cm.binary)
-    plt.title(class_names[train_labels[rand_index]])
-    plt.axis(False)
-"""
-def view_random_image(target_dir, target_class):
-    import random
-    import matplotlib.pyplot as plt
-    import matplotlib.image as mpimg
-    """
-    View an random image from import data
-    :param target_dir:
-    :param target_class:
-    :return img:
-    """
-    # Setup target directory (we'll view images from here)
-    target_folder = target_dir+target_class
-
-    # Get a random image path
-    random_image = random.sample(os.listdir(target_folder), 1)
-
-    # Read in the image and plot it using matplotlib
-    img = mpimg.imread(target_folder + "/" + random_image[0])
-    plt.imshow(img)
-    plt.title(target_class)
-    plt.axis("off");
-    print(f"Image shape: {img.shape}") # show the shape of the image
-
-    return img
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
+ 
 # 3. for preparation data (normalize and add to pipeline)
 # 3.1 Train test split
 """ Train test split

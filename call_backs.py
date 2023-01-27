@@ -1,4 +1,4 @@
-# 4.3 save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
+# save the best perfromance models aka modelcheckpoint(fix file from cnn_advence)
 # Create a function to implement a ModelCheckpoint callback with a specific filename 
 def create_model_checkpoint(model_name, save_path="model_experiments"):
     import os
@@ -13,8 +13,7 @@ def create_model_checkpoint(model_name, save_path="model_experiments"):
                                                          verbose=1) # only output a limited amount of text
     return checkpoint_callback
                                             
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# 
-# 4.4 Creat tensorboard and can show history of models
+# Creat tensorboard and can show history of models
 def create_tensorboard_callback(dir_name, experiment_name):
     from datetime import datetime
     import os 
@@ -36,19 +35,25 @@ def create_tensorboard_callback(dir_name, experiment_name):
     print(f"Saving TensorBoard log files to: {log_dir}")
     return tensorboard_callback
 
-"""# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
-early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", # watch the val loss metric
-                                                  patience=3) # if val loss decreases for 3 epochs in a row, stop training
-"""
+# Setup EarlyStopping callback to stop training if model's val_loss doesn't improve for 3 epochs
+def early_stopping(monitor="val_loss",patience=3):
+    import tensorflow as tf
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor=monitor, # watch the val loss metric
+                                                      patience=patience) # if val loss decreases for 3 epochs in a row, stop training
+    return early_stopping
+
 
 # 4.2 plateua for learning rate reducing (fix file from cnn_advence)
-"""# Creating learning rate reduction callback
-reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
-                                                 factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
-                                                 patience=2,
-                                                 verbose=1, # print out when learning rate goes down 
-                                                 min_lr=1e-7)
-                                                 """
+# Creating learning rate reduction callback
+def reduce_lr(monitor="val_loss", patience=2):
+    import tensorflow as tf
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",  
+                                                     factor=0.2, # multiply the learning rate by 0.2 (reduce by 5x)
+                                                     patience=2,
+                                                     verbose=1, # print out when learning rate goes down 
+                                                     min_lr=1e-7)
+    return reduce_lr
+
 
 """ Save the model 
 model_6.save("model_6.h5")

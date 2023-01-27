@@ -49,3 +49,24 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
                                                  verbose=1, # print out when learning rate goes down 
                                                  min_lr=1e-7)
                                                  """
+
+""" Save the model 
+model_6.save("model_6.h5")
+# Load model with custom Hub Layer (required with HDF5 format)
+loaded_model_6 = tf.keras.models.load_model("model_6.h5", 
+                                            custom_objects={"KerasLayer": hub.KerasLayer})
+"""
+
+""" Tensor Board dev
+# Upload TensorBoard dev records
+!tensorboard dev upload --logdir ./tensorflow_hub/ \
+  --name "EfficientNetB0 vs. ResNet50V2" \
+  --description "Comparing two different TF Hub feature extraction models architectures using 10% of training images" \
+  --one_shot
+  
+# Check out experiments
+!tensorboard dev list
+
+# Delete an experiment
+!tensorboard dev delete --experiment_id n6kd8XZ3Rdy1jSgSLH5WjA
+"""

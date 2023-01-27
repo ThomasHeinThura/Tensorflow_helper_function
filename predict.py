@@ -1,5 +1,4 @@
-
-#Time series
+# Time series
 def make_preds(model, input_data):
   import tensorflow as tf
   """
@@ -73,7 +72,6 @@ def plot_prediciton():
                     label="model_3_preds")
 
 """
-
 
 ### NLP
 def predict_on_sentence(model, sentence):

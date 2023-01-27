@@ -70,14 +70,17 @@ def make_train_test_splits(windows, labels, test_split=0.2):
 
 
 # 3.1 Train test split
-""" Train test split
-from sklearn.model_selection import train_test_split
+"""def trian_test_split_from_dataset(dataset):
+  from sklearn.model_selection import train_test_split
 
-# Use train_test_split to split training data into training and validation sets
-train_sentences, val_sentences, train_labels, val_labels = train_test_split(train_df_shuffled["text"].to_numpy(),
-                                                                            train_df_shuffled["target"].to_numpy(),
-                                                                            test_size=0.1, # dedicate 10% of samples to validation set
-                                                                            random_state=42) # random state for reproducibility
+  # Use train_test_split to split training data into training and validation sets
+  train_sentences, val_sentences, train_labels, val_labels = train_test_split(dataset["text"].to_numpy(),
+                                                                              dataset["target"].to_numpy(),
+                                                                              test_size=0.1, # dedicate 10% of samples to validation set
+                                                                              random_state=42) # random state for reproducibility"""
+
+""" Train test split
+
 """
 """# One kind of correct way (there are more) to make data subset
 # (split the already split train_sentences/train_labels)

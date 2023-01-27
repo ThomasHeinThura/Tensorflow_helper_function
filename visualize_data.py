@@ -28,19 +28,6 @@ def plot_time_series(timesteps, values, format='.', start=0, end=None, label=Non
     plt.legend(fontsize=14) # make label bigger
   plt.grid(True)
 
-
-# 2.3 visualize picture
-# Plot multiple random images of fashion MNIST
-"""  # Plot multiple random images of fashion MNIST
-  import random
-  plt.figure(figsize=(7, 7))
-  for i in range(4):
-    ax = plt.subplot(2, 2, i + 1)
-    rand_index = random.choice(range(len(train_data)))
-    plt.imshow(train_data[rand_index], cmap=plt.cm.binary)
-    plt.title(class_names[train_labels[rand_index]])
-    plt.axis(False)
-"""
 def view_random_image(target_dir, target_class):
     import random
     import matplotlib.pyplot as plt
@@ -66,7 +53,7 @@ def view_random_image(target_dir, target_class):
 
     return img
 
-# 2.4 visualize words and pandas
+"""#visualize words and pandas
 def visualize_words(dataset):
   # Let's visualize some random training examples
   import random
@@ -76,5 +63,16 @@ def visualize_words(dataset):
     print(f"Target: {target}", "(real disaster)" if target > 0 else "(not real disaster)")
     print(f"Text:\n{text}\n")
     print("---\n")
+"""
 
-
+# Plot multiple random images of fashion MNIST
+"""  # Plot multiple random images of fashion MNIST
+  import random
+  plt.figure(figsize=(7, 7))
+  for i in range(4):
+    ax = plt.subplot(2, 2, i + 1)
+    rand_index = random.choice(range(len(train_data)))
+    plt.imshow(train_data[rand_index], cmap=plt.cm.binary)
+    plt.title(class_names[train_labels[rand_index]])
+    plt.axis(False)
+"""

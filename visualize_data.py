@@ -1,14 +1,4 @@
 # 2.1 visualize plot data
-""" plot closing price 
-bitcoin_prices = pd.DataFrame(df["Closing Price (USD)"]).rename(columns={"Closing Price (USD)": "Price"})
-bitcoin_prices.head()
-
-import matplotlib.pyplot as plt
-bitcoin_prices.plot(figsize=(10, 7))
-plt.ylabel("BTC Price")
-plt.title("Price of Bitcoin from 1 Oct 2013 to 18 May 2021", fontsize=16)
-plt.legend(fontsize=14);
-"""
 # Create a function to plot time series data
 def plot_time_series(timesteps, values, format='.', start=0, end=None, label=None):
   import matplotlib.pyplot as plt
@@ -33,7 +23,7 @@ def plot_time_series(timesteps, values, format='.', start=0, end=None, label=Non
   # Plot the series
   plt.plot(timesteps[start:end], values[start:end], format, label=label)
   plt.xlabel("Time")
-  plt.ylabel("BTC Price")
+  plt.ylabel("Features")
   if label:
     plt.legend(fontsize=14) # make label bigger
   plt.grid(True)
@@ -77,35 +67,14 @@ def view_random_image(target_dir, target_class):
     return img
 
 # 2.4 visualize words and pandas
-""" download data and visualize some trianing examples
-# Download data (same as from Kaggle)
-!wget "https://storage.googleapis.com/ztm_tf_course/nlp_getting_started.zip"
-
-# Unzip data
-unzip_data("nlp_getting_started.zip")
-
-# Turn .csv files into pandas DataFrame's
-import pandas as pd
-train_df = pd.read_csv("train.csv")
-test_df = pd.read_csv("test.csv")
-train_df.head()
-
-# Let's visualize some random training examples
-import random
-random_index = random.randint(0, len(train_df)-5) # create random indexes not higher than the total number of samples
-for row in train_df_shuffled[["text", "target"]][random_index:random_index+5].itertuples():
-  _, text, target = row
-  print(f"Target: {target}", "(real disaster)" if target > 0 else "(not real disaster)")
-  print(f"Text:\n{text}\n")
-  print("---\n")
-"""
+def visualize_words(dataset):
+  # Let's visualize some random training examples
+  import random
+  random_index = random.randint(0, len(dataset)-5) # create random indexes not higher than the total number of samples
+  for row in dataset[["text", "target"]][random_index:random_index+5].itertuples():
+    _, text, target = row
+    print(f"Target: {target}", "(real disaster)" if target > 0 else "(not real disaster)")
+    print(f"Text:\n{text}\n")
+    print("---\n")
 
 
-    ## Viewing the single example for fashion_mnist
-    ### Plot a single example
-    import matplotlib.pyplot as plt
-    plt.imshow(train_data[7]);
-
-    ## Plot an example image and its label
-    plt.imshow(train_data[17], cmap=plt.cm.binary) # change the colours to black & white
-    plt.title(class_names[train_labels[17]]);

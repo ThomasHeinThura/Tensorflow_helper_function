@@ -247,3 +247,109 @@ plt.title("Price of Bitcoin from 1 Oct 2013 to 18 May 2021", fontsize=16)
 plt.xlabel("Date")
 plt.ylabel("BTC Price");
 """
+
+
+# 3. for preparation data (normalize and add to pipeline)
+# 3.1 Train test split
+""" Train test split
+from sklearn.model_selection import train_test_split
+
+# Use train_test_split to split training data into training and validation sets
+train_sentences, val_sentences, train_labels, val_labels = train_test_split(train_df_shuffled["text"].to_numpy(),
+                                                                            train_df_shuffled["target"].to_numpy(),
+                                                                            test_size=0.1, # dedicate 10% of samples to validation set
+                                                                            random_state=42) # random state for reproducibility
+"""
+
+# 3.2 datagen for CNN
+# preparation CNN data (first way)
+def reshape_image_from_dir_to_train(train_dir,test_dir):
+    import tensorflow as tf
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    # Set the seed
+    tf.random.set_seed(42)
+
+    # Preprocess data (get all of the pixel values between 1 and 0, also called scaling/normalization)
+    train_datagen = ImageDataGenerator(rescale=1./255)
+    valid_datagen = ImageDataGenerator(rescale=1./255)
+
+    # Import data from directories and turn it into batches
+    train_data = train_datagen.flow_from_directory(train_dir,
+                                                   batch_size=32, # number of images to process at a time 
+                                                   target_size=(224, 224), # convert all images to be 224 x 224
+                                                   class_mode="binary", # type of problem we're working on
+                                                   seed=42,
+                                                   shuffle=True)
+
+    valid_data = valid_datagen.flow_from_directory(test_dir,
+                                                   batch_size=32,
+                                                   target_size=(224, 224),
+                                                   class_mode="binary",
+                                                   seed=42,
+                                                   shuffle=True)
+
+    return train_data, valid_data
+
+def reshape_augmented_image_from_dir_to_train(train_dir,test_dir):
+    import tensorflow as tf
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    # Set the seed
+    tf.random.set_seed(42)
+
+    # Preprocess data (get all of the pixel values between 1 and 0, also called scaling/normalization)
+
+    train_datagen_augmented = ImageDataGenerator(rescale=1 / 255.,
+                                                 rotation_range=20, # rotate the image slightly between 0 and 20 degrees (note: this is an int not a float)
+                                                 shear_range=0.2,  # shear the image
+                                                 zoom_range=0.2,  # zoom into the image
+                                                 width_shift_range=0.2,  # shift the image width ways
+                                                 height_shift_range=0.2,  # shift the image height ways
+                                                 horizontal_flip=True)  # flip the image on the horizontal axis
+
+    valid_datagen = ImageDataGenerator(rescale=1./255)
+
+    # Import data from directories and turn it into batches
+    train_data_augmented = train_datagen_augmented.flow_from_directory(train_dir,
+                                                     batch_size=32, # number of images to process at a time
+                                                     target_size=(224, 224), # convert all images to be 224 x 224
+                                                     class_mode="binary", # type of problem we're working on
+                                                     seed=42,
+                                                     shuffle= True)
+
+    valid_data = valid_datagen.flow_from_directory(test_dir,
+                                                  batch_size=32,
+                                                  target_size=(224, 224),
+                                                  class_mode="binary",
+                                                  seed=42,
+                                                  shuffle=True)
+    return train_data_augmented, valid_data
+
+# preparation CNN data (second way)
+def preprocess_image_using_keras(train_dir, test_dir):
+    # Create data inputs
+    import tensorflow as tf
+    IMG_SIZE = (224, 224)  # define image size
+    train_data = tf.keras.preprocessing.image_dataset_from_directory(directory=train_dir,
+                                                                                image_size=IMG_SIZE,
+                                                                                label_mode="categorical",
+                                                                                # what type are the labels?
+                                                                                batch_size=32)  # batch_size is 32 by default, this is generally a good number
+    test_data = tf.keras.preprocessing.image_dataset_from_directory(directory=test_dir,
+                                                                               image_size=IMG_SIZE,
+                                                                               label_mode="categorical")
+    return train_data, test_data
+# The second way is better and Data-augmented-layers is needed.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
+# 3.3 data pipe line for best performace
+""" Preprocess data pipeline
+# Map preprocessing function to training data (and paralellize)
+train_data = train_data.map(map_func=preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
+# Shuffle train_data and turn it into batches and prefetch it (load it faster)
+train_data = train_data.shuffle(buffer_size=1000).batch(batch_size=32).prefetch(buffer_size=tf.data.AUTOTUNE)
+
+# Map prepreprocessing function to test data
+test_data = test_data.map(preprocess_img, num_parallel_calls=tf.data.AUTOTUNE)
+# Turn test data into batches (don't need to shuffle)
+test_data = test_data.batch(32).prefetch(tf.data.AUTOTUNE)
+"""
+

@@ -547,3 +547,165 @@ plt.title("F1-score versus time per prediction")
 plt.xlabel("Time per prediction")
 plt.ylabel("F1-Score");
 """
+
+# prepare to predict certain image
+def reshape_image_to_predict(filename, img_shape=224, scale=True):
+    import tensorflow as tf
+    """
+    Reads in an image from filename, turns it into a tensor with normalization and reshapes into
+    (224, 224, 3).
+
+    Parameters
+    ----------
+    filename (str): string filename of target image
+    img_shape (int): size to resize target image to, default 224
+    scale (bool): whether to scale pixel values to range(0, 1), default True
+    """
+    # Read in the image
+    img = tf.io.read_file(filename)
+    # Decode it into a tensor
+    img = tf.image.decode_jpeg(img)
+    # Resize the image
+    img = tf.image.resize(img, [img_shape, img_shape])
+    if scale:
+        # Rescale the image (get all values between 0 and 1)
+        return img/255.
+    else:
+        return img
+
+# Make a function to predict on images(CNN model) and plot them (works with multi-class)
+def predict_reshaped_image_and_plot(model, filename, class_names):
+    import tensorflow as tf
+    import matplotlib.pyplot as plt
+    """
+    Imports an image located at filename, makes a prediction on it with
+    a trained model and plots the image with the predicted class as the title.
+    """
+    # Import the target image and preprocess it
+    img = reshape_image_to_predict(filename)
+
+    # Make a prediction
+    pred = model.predict(tf.expand_dims(img, axis=0))
+
+    # Get the predicted class
+    if len(pred[0]) > 1: # check for multi-class
+        pred_class = class_names[pred.argmax()] # if more than one output, take the max
+    else:
+        pred_class = class_names[int(tf.round(pred)[0][0])] # if only one output, round
+
+    # Plot the image and predicted class
+    plt.imshow(img)
+    plt.title(f"Prediction: {pred_class}")
+    plt.axis(False);
+
+def predict_image_from_dir(model, class_names, test_dir):
+    # Make preds on a series of random images
+    import os
+    import random
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(17, 10))
+    for i in range(3):
+        # Choose a random image from a random class
+        #class_names = test_data.class_names
+        class_name = random.choice(class_names)
+        filename = random.choice(os.listdir(test_dir + "/" + class_name))
+        filepath = test_dir + class_name + "/" + filename
+
+        # Load the image and make predictions
+        img = reshape_image_to_predict(filepath, scale=False)  # don't scale images for EfficientNet predictions
+        pred_prob = model.predict(tf.expand_dims(img, axis=0))  # model accepts tensors of shape [None, 224, 224, 3]
+        pred_class = class_names[pred_prob.argmax()]  # find the predicted class
+
+        # Plot the image(s)
+        plt.subplot(1, 3, i + 1)
+        plt.imshow(img / 255.)
+        if class_name == pred_class:  # Change the color of text based on whether prediction is right or wrong
+            title_color = "g"
+        else:
+            title_color = "r"
+        plt.title(f"actual: {class_name}, pred: {pred_class}, prob: {pred_prob.max():.2f}", c=title_color)
+        plt.axis(False);
+
+def predict_random_image(model, images, true_labels, classes): # predict for fashion mninst
+    """Picks a random image, plots it and labels it with a predicted and truth label.
+
+    Args:
+      model: a trained model (trained on data similar to what's in images).
+      images: a set of random images (in tensor form).
+      true_labels: array of ground truth labels for images.
+      classes: array of class names for images.
+
+    Returns:
+      A plot of a random image from `images` with a predicted class label from `model`
+      as well as the truth class label from `true_labels`.
+    """
+    import random
+    import tensorflow as tf
+    import matplotlib.pyplot as plt
+    # Setup random integer
+    i = random.randint(0, len(images))
+
+    # Create predictions and targets
+    target_image = images[i]
+    pred_probs = model.predict(target_image.reshape(1, 28, 28))  # have to reshape to get into right size for model
+    pred_label = classes[pred_probs.argmax()]
+    true_label = classes[true_labels[i]]
+
+    # Plot the target image
+    plt.imshow(target_image, cmap=plt.cm.binary)
+
+    # Change the color of the titles depending on if the prediction is right or wrong
+    if pred_label == true_label:
+        color = "green"
+    else:
+        color = "red"
+
+    # Add xlabel information (prediction/true label)
+    plt.xlabel("Pred: {} {:2.0f}% (True: {})".format(pred_label,
+                                                     100 * tf.reduce_max(pred_probs),
+                                                     true_label),
+               color=color)  # set the color to green or red
+
+def show_most_wrong_data(): #for computer vision - Need to fix the function and add to my-function:
+    """
+    We need to make pandas to search most wrong data and show imgs
+
+    # 1. Get the filenames of all of our test data
+    filepaths = []
+    for filepath in test_data.list_files("101_food_classes_10_percent/test/*/*.jpg",
+                                         shuffle=False):
+    filepaths.append(filepath.numpy())
+    filepaths[:10]
+
+    # 2. Create a dataframe out of current prediction data for analysis
+    import pandas as pd
+    pred_df = pd.DataFrame({"img_path": filepaths,
+                        "y_true": y_labels,
+                        "y_pred": pred_classes,
+                        "pred_conf": pred_probs.max(axis=1), # get the maximum prediction probability value
+                        "y_true_classname": [class_names[i] for i in y_labels],
+                        "y_pred_classname": [class_names[i] for i in pred_classes]})
+    pred_df.head()
+
+    # 3. Is the prediction correct?
+    pred_df["pred_correct"] = pred_df["y_true"] == pred_df["y_pred"]
+    pred_df.head()
+
+    # 4. Get the top 100 wrong examples
+    top_100_wrong = pred_df[pred_df["pred_correct"] == False].sort_values("pred_conf", ascending=False)[:100]
+    top_100_wrong.head(20)
+
+    # 5. Visualize some of the most wrong examples
+    images_to_view = 9
+    start_index = 10 # change the start index to view more
+    plt.figure(figsize=(15, 10))
+    for i, row in enumerate(top_100_wrong[start_index:start_index+images_to_view].itertuples()):
+        plt.subplot(3, 3, i+1)
+        img = load_and_prep_image(row[1], scale=True)
+        _, _, _, _, pred_prob, y_true, y_pred, _ = row # only interested in a few parameters of each row
+        plt.imshow(img)
+        plt.title(f"actual: {y_true}, pred: {y_pred} \nprob: {pred_prob:.2f}")
+        plt.axis(False)
+    :return:
+    """

@@ -66,5 +66,5 @@ def import_from_tfds(dataset_name):
                                                     shuffle_files=True, # shuffle files on download?
                                                     as_supervised=True, # download data in tuple format (sample, label), e.g. (image, label)
                                                     with_info=True) # include dataset metadata? if so, tfds.load() returns tuple (data, ds_info)
-        # return train_data,train_labels,test_data,test_labels
+        return train_data, test_data
 
